@@ -646,7 +646,7 @@ self.onmessage = async (e) => {
             self.postMessage({ worldId, type: 'error', message: 'WASM Module not ready for saving.' });
             return;
         }
-        let sizePtr = 0; // Initialize to 0
+        let sizePtr = 0;
         try {
             sizePtr = Module._malloc(4); 
             const dataPtr = Module.ccall('save_world_file',
@@ -662,12 +662,12 @@ self.onmessage = async (e) => {
                 const fileDataView = new Uint8Array(Module.HEAPU8.buffer, dataPtr, dataSize);
                 const fileDataCopy = new Uint8Array(fileDataView);
 
-                //console.log(`Worker ${worldId}: World file data generated (${(fileDataCopy.byteLength / (1024*1024)).toFixed(2)} MB). Posting to main thread.`);
+                let wSize = parseInt(worldSize) + 1;
                 self.postMessage({
                     worldId: worldId,
                     type: 'world_file_data',
                     payload: {
-                        fileName: `${seed}_${worldSize + 1}.wld`,
+                        fileName: `${seed}_${wSize}.wld`,
                         fileBuffer: fileDataCopy.buffer // Send the ArrayBuffer of the copy
                     }
                 }, [fileDataCopy.buffer]); // Transfer ownership of the buffer
