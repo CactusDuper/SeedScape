@@ -5,73 +5,63 @@
     <title>SeedScape</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>SeedScape - Browser Based Terraria World Generation</h1>
-        </header>
-
-        <main class="main-content">
-            <div class="controls-panel">
-                <h2>Global Controls</h2>
+    <div class="app-container">
+        <button id="sidebarToggle" class="sidebar-toggle-btn">
+            <i class="fas fa-bars"></i> <!-- Example Icon -->
+        </button>
+        <div id="sidebar" class="sidebar">
+            <div class="sidebar-content">
+                <!-- Global Controls -->
                 <div class="control-group">
-                    <label for="numWorldsInput">Number of Worlds to Generate:</label>
-                    <input type="number" id="numWorldsInput" value="1" min="1" max="8">
-                </div>
-                <div class="control-group">
+                    <h3>Global</h3>
+                    <label for="numWorldsInput">Number of Worlds:</label>
+                    <input type="number" id="numWorldsInput" value="1" min="1">
                     <label for="baseSeedInput">Base Seed (appended with world index or random):</label>
                     <input type="number" id="baseSeedInput" value="12345">
                     <button id="randomBaseSeedButton"><i class="fas fa-random"></i> Random Base</button>
-                </div>
-                <div class="control-group">
                     <label for="worldSizeSelect">World Size (for new worlds):</label>
                     <select id="worldSizeSelect">
                         <option value="0" data-width="4200" data-height="1200">Small (4200x1200)</option>
                         <option value="1" data-width="6400" data-height="1800" selected>Medium (6400x1800)</option>
                         <option value="2" data-width="8400" data-height="2400">Large (8400x2400)</option>
                     </select>
-                </div>
-                 <div class="control-group">
                     <label for="stepDelayInput">C++ Step Delay (ms):</label>
                     <input type="number" id="stepDelayInput" value="0" min="0" title="Delay inside C++ emscripten_sleep during recordStep. 0 means yield only.">
-                </div>
-                <button id="generateWorldsButton"><i class="fas fa-play-circle"></i> Generate Worlds</button>
-                <button id="regenerateSelectedButton" disabled><i class="fas fa-redo"></i> Regenerate Selected</button>
-                <button id="clearAllButton"><i class="fas fa-trash"></i> Clear All Worlds</button>
-            </div>
-
-            <div class="visualization-panel-main">
-                <canvas id="mainWorldCanvas"></canvas>
-                 <div class="render-controls main-render-controls">
-                    <label for="zoomSlider">Zoom (Selected World):</label>
-                    <input type="range" id="zoomSlider" min="0.1" max="64" step="0.1" value="1">
-                    <span id="zoomValue">1.0x</span>
-                </div>
-            </div>
-            
-            <div class="info-panel">
-                <div class="info-display">
-                    <h2>Generation Info (Selected World)</h2>
-                    <div id="selectedWorldIdDisplay">Selected World: N/A</div>
-                    <button id="saveSelectedWldButton" class="world-action-button" disabled><i class="fas fa-save"></i> Save .wld</button>
-                    <div id="currentFunction">Current Function: N/A</div>
-                    <div id="currentEventDisplay">Event: 0 / 0</div>
-                    <div id="progressBarContainer">
-                        <div id="progressBar"></div>
-                    </div>
-                    <div id="tileInfoDisplay">Clicked Tile: N/A</div>
+                    <button id="generateWorldsButton">Generate</button>
+                    <button id="clearAllButton">Clear All</button>
                 </div>
 
-                <div class="log-messages">
-                    <h2>Global Log</h2>
+                <!-- Selected World Info & Controls (only visible if a world is selected) -->
+                <div id="selectedWorldControls" class="control-group" style="display: none;">
+                    <h3>Selected World (<span id="selectedWorldIdDisplay">N/A</span>)</h3>
+                    <div id="currentFunction">Func: N/A</div>
+                    <div id="currentEventDisplay">Status: N/A</div>
+                    <div class="progress-bar-container"><div id="progressBar"></div></div>
+                    <label for="zoomSlider">Zoom:</label>
+                    <input type="range" id="zoomSlider" min="0.1" max="32" step="0.1" value="1"> <span id="zoomValue">1.0x</span>
+                    <button id="regenerateSelectedButton">Regenerate Selected</button>
+                    <button id="saveSelectedWldButton">Save .wld</button>
+                    <button id="simulateHardmodeButton">Simulate Hardmode</button>
+                    <button id="backToGridButton" style="display: none;">Back to Grid View</button>
+                </div>
+                 <!-- Log Container -->
+                <div class="control-group">
+                    <h3>Log</h3>
                     <div id="logContainer"></div>
                 </div>
             </div>
-        </main>
+        </div>
+
+        <!-- Main Content Area (Canvas + Overlay) -->
+        <div class="main-content">
+            <canvas id="mainWorldCanvas"></canvas>
+            <div id="tileInfoDisplayOverlay" class="tile-info-overlay">Clicked Tile: N/A</div>
+        </div>
     </div>
     
-    <script src="worldgen_visualizer.js"></script> 
     <script src="script.js"></script>
 </body>
 </html>

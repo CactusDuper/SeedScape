@@ -1,295 +1,220 @@
-:root {
-    --primary-bg: #2c3e50; /* Dark blue/grey */
-    --secondary-bg: #34495e; /* Slightly lighter blue/grey */
-    --accent-color: #1abc9c; /* Teal */
-    --text-color: #ecf0f1; /* Light grey/white */
-    --border-color: #4a627a;
-    --highlight-color: #e67e22; /* Orange for highlights */
-    --panel-bg: #22303f;
-
-    --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
 body {
-    font-family: var(--font-main);
-    background-color: var(--primary-bg);
-    color: var(--text-color);
-    line-height: 1.6;
-    padding: 20px;
-    display: flex;
-    justify-content: center;
-    overflow-x: hidden; /* Prevent horizontal scroll on body */
-}
-
-.container {
-    width: 100%;
-    max-width: 2000px;
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 40px); /* Full viewport height minus body padding */
-    min-height: 700px; /* Adjusted minimum height */
-}
-
-header {
-    text-align: center;
-    margin-bottom: 20px;
-    color: var(--accent-color);
-    flex-shrink: 0;
-}
-
-.main-content {
-    display: grid;
-    grid-template-columns: 300px 1fr; /* Controls panel fixed, viz panel flexible */
-    grid-template-rows: auto 1fr; /* Info panel auto, give rest to main viz area row */
-    gap: 20px;
-    flex-grow: 1;
+    margin: 0;
+    font-family: sans-serif;
     overflow: hidden;
+    background-color: #1a1d21;
+    color: #cdd1d5;
+    --sidebar-width-desktop: 300px;
+    --sidebar-height-mobile: 200px; /* Should this be dynamic? */
+    --accent-color: #4CAF50;
+    --border-color: #444;
+    --font-main: Arial, sans-serif;
 }
 
-.controls-panel {
-    grid-column: 1 / 2;
-    grid-row: 1 / 2; /* Takes the first auto row implicitly with new template */
-    background-color: var(--secondary-bg);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+.app-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+.sidebar {
+    background-color: #282c34;
     overflow-y: auto;
-    overflow-x: hidden;
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, height 0.3s ease-in-out;
+    z-index: 10;
     display: flex;
     flex-direction: column;
-    gap: 10px;
 }
 
-.controls-panel h2, .info-display h2, .log-messages h2 {
-    color: var(--accent-color);
-    margin-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 5px;
-    font-size: 1.1em;
+.sidebar-content {
+    padding: 15px;
+    flex-grow: 1;
+    overflow-y: auto;
 }
 
-.control-group {
-    margin-bottom: 12px;
-}
-.control-group button {
-    margin-top: 5px;
-}
-.control-group label {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 0.9em;
-}
-
-input[type="number"], select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background-color: var(--primary-bg);
-    color: var(--text-color);
-    font-size: 0.9em;
-}
-
-button {
+.sidebar-toggle-btn {
+    position: fixed;
+    z-index: 20;
+    padding: 10px 12px;
     background-color: var(--accent-color);
     color: white;
     border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin-right: 5px; /* Default for inline buttons */
-    font-size: 0.9em;
-    width: 100%; /* Default to full width for controls panel */
-    margin-bottom: 5px;
-}
-button:last-child {
-    margin-bottom: 0;
+    border-radius: 0 5px 5px 0;
+    transition: left 0.3s ease-in-out, top 0.3s ease-in-out;
 }
 
-button:hover {
-    background-color: #16a085; /* Darker teal */
-}
-
-button:disabled {
-    background-color: #7f8c8d; /* Greyed out */
-    color: #bdc3c7;
-    cursor: not-allowed;
-}
-
-button i {
-    margin-right: 8px;
-}
-
-.visualization-panel-main {
-    grid-column: 2 / 3;
-    grid-row: 1 / 3; /* Span both rows defined for main-content's right column */
-    display: flex;
-    flex-direction: column;
-    background-color: #1c2833;
-    border-radius: 8px;
-    overflow: hidden;
+.main-content {
+    flex-grow: 1;
     position: relative;
-    image-rendering: pixelated; /* Apply to container if needed */
+    display: flex;
+    overflow: hidden;
 }
 
 #mainWorldCanvas {
+    width: 100%;
+    height: 100%;
     display: block;
-    width: 100%;
-    height: calc(100% - 30px); /* Adjust if main render controls are always visible */
-    background-color: #000000;
-    image-rendering: pixelated;
-    cursor: default;
 }
 
-.render-controls.main-render-controls {
-    background-color: var(--secondary-bg);
-    padding: 0 10px; /* Vertical padding handled by height */
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.tile-info-overlay {
+    position: absolute;
+    top: 10px;
+    left: 50px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
     font-size: 0.9em;
-    flex-shrink: 0;
-    height: 30px;
-    border-top: 1px solid var(--border-color);
-}
-.render-controls.main-render-controls label {
-    white-space: nowrap;
+    z-index: 5;
+    pointer-events: none;
+    white-space: pre-wrap;
 }
 
 
-.info-panel {
-    grid-column: 1 / 2;
-    grid-row: 2 / 3;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    overflow-y: auto;
-    background-color: var(--secondary-bg);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    min-height: 250px;
+.control-group {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #444;
 }
-
-.info-display, .log-messages {
-    background-color: var(--panel-bg);
-    padding: 12px;
-    border-radius: 6px;
-    display: flex; /* For log-messages to allow logContainer to grow */
-    flex-direction: column; /* For log-messages */
+.control-group:last-child {
+    border-bottom: none;
 }
-
-#currentFunction, #currentEventDisplay, #selectedWorldIdDisplay, #tileInfoDisplay {
-    font-size: 0.9em;
-    margin-bottom: 8px;
-    word-break: break-all;
-    white-space: pre-line;
-    line-height: 1.4;
+.control-group h3 {
+    margin-top: 0;
+    color: var(--accent-color);
 }
-#tileInfoDisplay {
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border-color);
-    font-style: italic;
-    min-height: 3.5em; /* Reserve space for a couple lines of tile info */
-}
-
-
-#progressBarContainer {
-    width: 100%;
-    height: 12px;
-    background-color: var(--primary-bg);
-    border-radius: 6px;
-    overflow: hidden;
-    margin-top: 8px;
+.control-group label {
+    display: block;
     margin-bottom: 5px;
+    font-size: 0.9em;
+}
+.control-group input[type="number"],
+.control-group input[type="range"],
+.control-group select,
+.control-group button {
+    width: calc(100% - 20px);
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    border: 1px solid #555;
+    background-color: #333842;
+    color: #eee;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.control-group button {
+    cursor: pointer;
+    background-color: #555e6d;
+}
+.control-group button:hover {
+    background-color: #667081;
+}
+#generateWorldsButton {
+    background-color: var(--accent-color);
+}
+#generateWorldsButton:hover {
+    background-color: #409043;
 }
 
+
+.progress-bar-container {
+    width: 100%;
+    background-color: #555;
+    border-radius: 3px;
+    height: 10px;
+    margin-bottom: 10px;
+}
 #progressBar {
     width: 0%;
     height: 100%;
-    background-color: var(--highlight-color);
-    transition: width 0.1s linear;
+    background-color: var(--accent-color);
+    border-radius: 3px;
+    transition: width 0.3s ease;
 }
-
-
-input[type="range"] {
-    flex-grow: 1;
-    accent-color: var(--accent-color);
-    cursor: pointer;
-}
-input[type="range"]:disabled {
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-
 #logContainer {
-    background-color: var(--primary-bg);
-    border: 1px solid var(--border-color);
-    padding: 8px;
-    min-height: 80px; /* Adjusted min-height */
-    max-height: 200px; /* Adjusted max-height */
+    height: 100px;
     overflow-y: auto;
-    font-size: 0.85em;
-    border-radius: 4px;
-    flex-grow: 1; /* Allows it to fill space within .log-messages */
-    line-height: 1.3;
+    background-color: #1e1e1e;
+    padding: 5px;
+    font-size: 0.8em;
+    border: 1px solid #444;
+    border-radius: 3px;
 }
 
-#logContainer div {
-    padding: 2px 0;
-    border-bottom: 1px solid #3a5068; /* Slightly lighter for less contrast */
-    word-break: break-word;
-}
-#logContainer div:last-child {
-    border-bottom: none;
+
+@media (min-width: 769px) {
+    .app-container {
+        flex-direction: row; /* Sidebar on left, main content on right */
+    }
+    .sidebar {
+        width: var(--sidebar-width-desktop);
+        height: 100vh;
+        transform: translateX(0);
+        transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+        flex-shrink: 0;
+    }
+    .sidebar.collapsed {
+        transform: translateX(calc(-1 * var(--sidebar-width-desktop)));
+        width: 0;
+        padding-left: 0;
+        padding-right: 0;
+        overflow: hidden;
+    }
+    .sidebar-toggle-btn {
+        top: 10px;
+        left: var(--sidebar-width-desktop);
+        border-radius: 0 5px 5px 0;
+    }
+    .sidebar-toggle-btn.moved { /* COLLAPSED */
+        left: 0px;
+    }
+    .sidebar.collapsed ~ .sidebar-toggle-btn {
+        left: 0px; /* When sidebar is collapsed, button moves to the left edge of the viewport */
+    }
+
 }
 
-/* Responsive adjustments */
-@media (max-width: 1200px) {
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column; /* Sidebar on top, main content below */
+    }
     .main-content {
-        grid-template-columns: 280px 1fr; /* Shrink controls panel */
+        flex-grow: 1;
+        padding-top: 0px;
+        transition: padding-top 0.3s ease-in-out;
+        width: 100%;
+        overflow: hidden;
     }
-}
+    .sidebar {
+        width: 100vw;
+        height: var(--sidebar-height-mobile);
+        max-height: 60vh;
+        transition: transform 0.3s ease-in-out, height 0.3s ease-in-out;
+        transform: translateY(calc(-100%));
+        position: fixed;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+        background-color: #282c34;
+        z-index: 10;
+    }
+    .sidebar.open {
+        transform: translateY(0);
+        overflow-y: auto;
+    }
+    .sidebar-toggle-btn {
+        top: 10px;
+        left: 10px;
+        border-radius: 5px;
+        z-index: 20;
+    }
+    .app-container.mobile-sidebar-open .main-content {
+        padding-top: 28vh; /* Must match .sidebar.open height */
+    }
 
-@media (max-width: 900px) {
-    .main-content {
-        grid-template-columns: 1fr; /* Single column */
-        grid-template-rows: auto auto minmax(300px, 45vh); /* Controls, Info, Visualization */
-        /* height: auto; implicit, parent .container still has 100vh-40px constraint */
+    .tile-info-overlay {
+        font-size: 0.8em;
+        top: 10px;
     }
-    .controls-panel {
-        grid-row: 1 / 2;
-        grid-column: 1 / 2; /* Full width */
-        max-height: 35vh; /* Limit height to prevent pushing viz panel too much */
-    }
-    .info-panel {
-        grid-row: 2 / 3;
-        grid-column: 1 / 2; /* Full width */
-        max-height: 30vh; /* Limit height */
-    }
-    .visualization-panel-main {
-        grid-row: 3 / 4;
-        grid-column: 1 / 2; /* Full width */
-        min-height: 250px; /* Ensure it has decent height, adjust 45vh in grid-template-rows if needed */
-    }
-    .controls-panel h2, .info-display h2, .log-messages h2 {
-        font-size: 1em; /* Slightly smaller headings for mobile */
-    }
-    button {
-        padding: 8px 12px;
-        font-size: 0.85em;
-    }
-    input[type="number"], select {
-        padding: 7px;
-        font-size: 0.85em;
-    }
+
 }

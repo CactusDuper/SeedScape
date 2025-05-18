@@ -23,344 +23,369 @@ const LIQUID_TYPE_SHIFT = 9;       // Shift to get liquid type to 0-3 range
 
 // TODO: Shared settings
 const tiles_worker = [
-    { name: "Dirt", color: "#976B4B"}, // NM
-    { name: "Stone", color: "#808080"}, // NM
-    { name: "Grass", color: "#1CD85E"}, // NM
-    { name: "Plants", color: "#1BC56D"}, // NM
-    { name: "Torches", color: "#FDDD03"}, // NM
-    { name: "Trees", color: "#976B4B"}, // NM
-    { name: "Iron", color: "#8C6550"}, // NM
-    { name: "Copper", color: "#964316"}, // NM
-    { name: "Gold", color: "#B9A417"}, // NM
-    { name: "Silver", color: "#B9C2C3"}, // NM
-    { name: "ClosedDoor", color: "#77694F"}, // NM
-    { name: "Heart", color: "#AE1845"}, // NM
-    { name: "Bottles", color: "#85D5F7"}, // NM
-    { name: "Tables", color: "#BF8E6F"}, // NM
-    { name: "Chairs", color: "#BF8E6F"}, // NM
-    { name: "Anvils", color: "#8C8274"}, // NM
-    { name: "WorkBenches", color: "#BF8E6F"}, // NM
-    { name: "Platforms", color: "#BF8E6F"}, // NM
-    { name: "Containers", color: "#E9CF5E"}, // NM
-    { name: "Demonite", color: "#625FA7"}, // NM
-    { name: "CorruptGrass", color: "#8D89DF"}, // NM
-    { name: "CorruptPlants", color: "#7A74DA"}, // NM
-    { name: "Ebonstone", color: "#6D5A80"}, // NM
-    { name: "DemonAltar", color: "#77657D"}, // NM
-    { name: "Sunflower", color: "#E2C431"}, // NM
-    { name: "Pots", color: "#974F50"}, // NM
-    { name: "WoodBlock", color: "#AA7854"}, // NM
-    { name: "ShadowOrbs", color: "#8D78A8"}, // NM
-    { name: "CorruptThorns", color: "#9787B7"}, // NM
-    { name: "Candles", color: "#FDDD03"}, // NM
-    { name: "Chandeliers", color: "#EBA687"}, // NM
-    { name: "ClayBlock", color: "#925144"}, // NM
-    { name: "BlueDungeonBrick", color: "#42546D"}, // NM
-    { name: "HangingLanterns", color: "#FBEB7F"}, // NM
-    { name: "GreenDungeonBrick", color: "#54643F"}, // NM
-    { name: "PinkDungeonBrick", color: "#6B4463"}, // NM
-    { name: "GoldBrick", color: "#B9A417"}, // NM
-    { name: "Spikes", color: "#808080"}, // NM
-    { name: "WaterCandle", color: "#2B8FFF"}, // NM
-    { name: "Books", color: "#AA3072"}, // NM
-    { name: "Cobweb", color: "#C0CACB"}, // NM
-    { name: "Vines", color: "#17B14C"}, // NM
-    { name: "Sand", color: "#FFDA38"}, // NM
-    { name: "Obsidian", color: "#2B2854"}, // NM
-    { name: "Ash", color: "#44444C"}, // NM
-    { name: "Hellstone", color: "#8E4242"}, // NM
-    { name: "Mud", color: "#5C4449"}, // NM
-    { name: "JungleGrass", color: "#8FD71D"}, // NM
-    { name: "JunglePlants", color: "#87C41A"}, // NM
-    { name: "JungleVines", color: "#79B018"}, // NM
-    { name: "Sapphire", color: "#6E8CB6"}, // NM
-    { name: "Ruby", color: "#C46072"}, // NM
-    { name: "Emerald", color: "#389661"}, // NM
-    { name: "Topaz", color: "#A0763A"}, // NM
-    { name: "Amethyst", color: "#8C3AA6"}, // NM
-    { name: "Diamond", color: "#7DBFC5"}, // NM
-    { name: "JungleThorns", color: "#BE965C"}, // NM
-    { name: "MushroomGrass", color: "#5D7FFF"}, // NM
-    { name: "MushroomPlants", color: "#B6AF82"}, // NM
-    { name: "MushroomTrees", color: "#B6AF82"}, // NM
-    { name: "Plants2", color: "#1BC56D"}, // NM
-    { name: "JunglePlants2", color: "#60C51B"}, // NM
-    { name: "ObsidianBrick", color: "#242424"}, // NM
-    { name: "HellstoneBrick", color: "#8E4242"}, // NM
-    { name: "Hellforge", color: "#EE5546"}, // NM
-    { name: "Beds", color: "#BF8E6F"}, // NM
-    { name: "Cactus", color: "#497811"}, // NM
-    { name: "Coral", color: "#F585BF"}, // NM
-    { name: "ImmatureHerbs", color: "#FF7800"}, // NM
-    { name: "MatureHerbs", color: "#FF7800"}, // NM
-    { name: "BloomingHerbs", color: "#FF7800"}, // NM
-    { name: "Loom", color: "#BF8E6F"}, // NM
-    { name: "Pianos", color: "#BF8E6F"}, // NM
-    { name: "Dressers", color: "#BF8E6F"}, // NM
-    { name: "Benches", color: "#BF8E6F"}, // NM
-    { name: "Bathtubs", color: "#909490"}, // NM
-    { name: "Banners", color: "#0D5882"}, // NM
-    { name: "Lamps", color: "#FDDD03"}, // NM
-    { name: "Kegs", color: "#BF8E6F"}, // NM
-    { name: "Candelabras", color: "#FDDD03"}, // NM
-    { name: "Bookcases", color: "#BF8E6F"}, // NM
-    { name: "Bowls", color: "#8D624D"}, // NM
-    { name: "GrandfatherClocks", color: "#BF8E6F"}, // NM
-    { name: "Statues", color: "#909490"}, // NM
-    { name: "Sawmill", color: "#BF8E6F"}, // NM
-    { name: "Ebonsand", color: "#67627A"}, // NM
-    { name: "IridescentBrick", color: "#6B5C6C"}, // NM
-    { name: "Mudstone", color: "#5C4449"}, // NM
-    { name: "Silt", color: "#6A6B76"}, // NM
-    { name: "WoodenBeam", color: "#493324"}, // NM
-    { name: "ActiveStoneBlock", color: "#A0A0A0"}, // NM
-    { name: "PressurePlates", color: "#FD7272"}, // NM
-    { name: "Switches", color: "#D5CBCC"}, // NM
-    { name: "Traps", color: "#909490"}, // NM
-    { name: "Boulder", color: "#606060"}, // NM
-    { name: "Explosives", color: "#C03B3B"}, // NM
-    { name: "SnowBlock", color: "#D3ECF1"}, // NM
-    { name: "SandstoneBrick", color: "#BEAB5E"}, // NM
-    { name: "RichMahogany", color: "#915155"}, // NM
-    { name: "IceBlock", color: "#90C3E8"}, // NM
-    { name: "BreakableIce", color: "#B8DBF0"}, // NM
-    { name: "CorruptIce", color: "#AE91D6"}, // NM
-    { name: "Stalactite", color: "#646464"}, // NM
-    { name: "Tin", color: "#817D5D"}, // NM
-    { name: "Lead", color: "#3E5272"}, // NM
-    { name: "Tungsten", color: "#849D7F"}, // NM
-    { name: "Platinum", color: "#98ABC6"}, // NM
-    { name: "TinBrick", color: "#817D5D"}, // NM
-    { name: "ExposedGems", color: "#FF00FF"}, // NM
-    { name: "GreenMoss", color: "#318672"}, // NM
-    { name: "BrownMoss", color: "#7E8631"}, // NM
-    { name: "RedMoss", color: "#863B31"}, // NM
-    { name: "BlueMoss", color: "#2B568C"}, // NM
-    { name: "PurpleMoss", color: "#793186"}, // NM
-    { name: "LongMoss", color: "#646464"}, // NM
-    { name: "SmallPiles", color: "#959573"}, // NM
-    { name: "LargePiles", color: "#FF00FF"}, // NM
-    { name: "LargePiles2", color: "#FF00FF"}, // NM
-    { name: "CactusBlock", color: "#497811"}, // NM
-    { name: "Cloud", color: "#DFFFFF"}, // NM
-    { name: "MushroomBlock", color: "#B6AF82"}, // NM
-    { name: "LivingWood", color: "#976B4B"}, // NM
-    { name: "LeafBlock", color: "#1AC454"}, // NM
-    { name: "RainCloud", color: "#9390B2"}, // NM
-    { name: "CrimsonGrass", color: "#D05050"}, // NM
-    { name: "FleshIce", color: "#D89890"}, // NM
-    { name: "CrimsonPlants", color: "#CB3D40"}, // NM
-    { name: "Sunplate", color: "#D5B21C"}, // NM
-    { name: "Crimstone", color: "#802C2D"}, // NM
-    { name: "Crimtane", color: "#7D3741"}, // NM
-    { name: "CrimsonVines", color: "#BA3234"}, // NM
-    { name: "WaterFountain", color: "#909490"}, // NM
-    { name: "Campfire", color: "#FE7902"}, // NM
-    { name: "Extractinator", color: "#909490"}, // NM
-    { name: "Slush", color: "#6B848B"}, // NM
-    { name: "Hive", color: "#E37D16"}, // NM
-    { name: "LihzahrdBrick", color: "#8D3800"}, // NM
-    { name: "DyePlants", color: "#FFFFFF"}, // NM
-    { name: "DyeVat", color: "#909490"}, // NM
-    { name: "HoneyBlock", color: "#FF9C0C"}, // NM
-    { name: "CrispyHoneyBlock", color: "#834F0D"}, // NM
-    { name: "Larva", color: "#E0C265"}, // NM
-    { name: "WoodenSpikes", color: "#915155"}, // NM
-    { name: "PlantDetritus", color: "#FF00FF"}, // NM
-    { name: "Crimsand", color: "#352C29"}, // NM
-    { name: "LihzahrdAltar", color: "#FFF133"}, // NM
-    { name: "Painting3X3", color: "#63321E"}, // NM
-    { name: "Painting4X3", color: "#4D4A48"}, // NM
-    { name: "Painting6X4", color: "#63321E"}, // NM
-    { name: "Painting2X3", color: "#63321E"}, // NM
-    { name: "Painting3X2", color: "#63321E"}, // NM
-    { name: "SapphireGemspark", color: "#4F66FF"}, // NM
-    { name: "LivingLoom", color: "#909490"}, // NM
-    { name: "MinecartTrack", color: "#B5A47D"}, // NM
-    { name: "BorealWood", color: "#604D40"}, // NM
-    { name: "PalmTree", color: "#B68D56"}, // NM
-    { name: "BeachPiles", color: "#E4D5AD"}, // NM
-    { name: "GoldCoinPile", color: "#CCB548"}, // NM
-    { name: "MushroomStatue", color: "#909490"}, // NM
-    { name: "CrimsonThorns", color: "#EE615E"}, // NM
-    { name: "BewitchingTable", color: "#8D6B59"}, // NM
-    { name: "AlchemyTable", color: "#8D6B59"}, // NM
-    { name: "MarbleBlock", color: "#A8B2CC"}, // NM
-    { name: "Marble", color: "#A8B2CC"}, // NM
-    { name: "Granite", color: "#322E68"}, // NM
-    { name: "GraniteBlock", color: "#322E68"}, // NM
-    { name: "WaterDrip", color: "#093DBF"}, // NM
-    { name: "LavaDrip", color: "#FD2003"}, // NM
-    { name: "HoneyDrip", color: "#FF9C0C"}, // NM
-    { name: "SharpeningStation", color: "#BF8E6F"}, // NM
-    { name: "LavaMoss", color: "#fc5104"},
-    { name: "VineFlowers", color: "#1e9648"},
-    { name: "LivingMahogany", color: "#dc8c94"},
-    { name: "LivingMahoganyLeaves", color: "#64940c"},
-    { name: "Sandstone", color: "#d4945c"},
-    { name: "HardenedSand", color: "#99703c"},
-    { name: "CorruptHardenedSand", color: "#372742"},
-    { name: "CrimsonHardenedSand", color: "#3c140c"},
-    { name: "CorruptSandstone", color: "#382844"},
-    { name: "CrimsonSandstone", color: "#493c34"},
-    { name: "DesertFossil", color: "#b46a4a"},
-    { name: "Detonator", color: "#e32d2d"},
-    { name: "GeyserTrap", color: "#A4A4A4"},
-    { name: "BeeHive", color: "#9C845C"},
-    { name: "SandDrip", color: "#FFDA38"}, // , (no clue what it's supposed to be, likely takes on biome color? Sand color for now)
-    { name: "Containers2", color: "#E9CF5E"},
-    { name: "Tables2", color: "#BF8E6F"},
-    { name: "CrackedBlueDungeonBrick", color: "#546c7c"},
-    { name: "CrackedGreenDungeonBrick", color: "#546454"},
-    { name: "CrackedPinkDungeonBrick", color: "#8c446c"},
-    { name: "RollingCactus", color: "#7c9c1c"},
-    { name: "AntlionLarva", color: "#ccbca4"},
-    { name: "FallenLog", color: "#d15558"}, //  (redish)
-    { name: "ShellPile", color: "#f5e7d3"},
-    { name: "CatBast", color: "#a91e26"}, //  (deeper red)
-    { name: "LilyPad", color: "#1dbe62"},
-    { name: "Cattail", color: "#1e9652"},
-    { name: "MushroomVines", color: "#d7d3b5"},
-    { name: "SeaOats", color: "#dfbd96"},
-    { name: "OasisPlants", color: "#527d08"},
-    { name: "BoulderStatue", color: "#393939"},
-    { name: "KryptonMoss", color: "#74fc04"},
-    { name: "XenonMoss", color: "#02f3eb"},
-    { name: "ArgonMoss", color: "#d4047c"},
-    { name: "Seaweed", color: "#345414"},
-    { name: "MarbleColumn", color: "#848ca4"},
-    { name: "Bamboo", color: "#54621c"},
-    { name: "BorealBeam", color: "#4c3c34"},
-    { name: "RichMahoganyBeam", color: "#844c54"},
-    { name: "GraniteColumn", color: "#3c3474"},
-    { name: "SandstoneColumn", color: "#945c3c"},
-    { name: "MushroomBeam", color: "#8b856f"},
-    { name: "TreeTopaz", color: "#cc7c24"},
-    { name: "TreeAmethyst", color: "#eca0fc"},
-    { name: "TreeSapphire", color: "#a4e4fc"},
-    { name: "TreeEmerald", color: "#44bc8c"},
-    { name: "TreeRuby", color: "#c42c2c"},
-    { name: "TreeDiamond", color: "#a4e4ec"},
-    { name: "TreeAmber", color: "#c16604"},
-    { name: "VanityTreeSakura", color: "#745c4c"},
-    { name: "VanityTreeYellowWillow", color: "#945c54"},
-    { name: "VioletMoss", color: "#7c1cac"},
-    { name: "AshGrass", color: "#d48c64"},
-    { name: "TreeAsh", color: "#8c747c"},
-    { name: "CorruptVines", color: "#9991d4"},
-    { name: "AshPlants", color: "#f4cfa0"},
-    { name: "AshVines", color: "#da9169"},
-    { name: "GlowTulip", color: "#84dcc4"},
-    { name: "ShimmerBlock", color: "#fcecf1"},
-    { name: "CorruptJungleGrass", color: "#6c6cac"},
-    { name: "CrimsonJungleGrass", color: "#a84040"},
-    { name: "DirtiestBlock", color: "#74543c"} //  (might highlight?)
+    { name: "Dirt", color: "#976B4B" }, // NM
+    { name: "Stone", color: "#808080" }, // NM
+    { name: "Grass", color: "#1CD85E" }, // NM
+    { name: "Plants", color: "#1BC56D" }, // NM
+    { name: "Torches", color: "#FDDD03" }, // NM
+    { name: "Trees", color: "#976B4B" }, // NM
+    { name: "Iron", color: "#8C6550" }, // NM
+    { name: "Copper", color: "#964316" }, // NM
+    { name: "Gold", color: "#B9A417" }, // NM
+    { name: "Silver", color: "#B9C2C3" }, // NM
+    { name: "ClosedDoor", color: "#77694F" }, // NM
+    { name: "Heart", color: "#AE1845" }, // NM
+    { name: "Bottles", color: "#85D5F7" }, // NM
+    { name: "Tables", color: "#BF8E6F" }, // NM
+    { name: "Chairs", color: "#BF8E6F" }, // NM
+    { name: "Anvils", color: "#8C8274" }, // NM
+    { name: "WorkBenches", color: "#BF8E6F" }, // NM
+    { name: "Platforms", color: "#BF8E6F" }, // NM
+    { name: "Containers", color: "#E9CF5E" }, // NM
+    { name: "Demonite", color: "#625FA7" }, // NM
+    { name: "CorruptGrass", color: "#8D89DF" }, // NM
+    { name: "CorruptPlants", color: "#7A74DA" }, // NM
+    { name: "Ebonstone", color: "#6D5A80" }, // NM
+    { name: "DemonAltar", color: "#77657D" }, // NM
+    { name: "Sunflower", color: "#E2C431" }, // NM
+    { name: "Pots", color: "#974F50" }, // NM
+    { name: "WoodBlock", color: "#AA7854" }, // NM
+    { name: "ShadowOrbs", color: "#8D78A8" }, // NM
+    { name: "CorruptThorns", color: "#9787B7" }, // NM
+    { name: "Candles", color: "#FDDD03" }, // NM
+    { name: "Chandeliers", color: "#EBA687" }, // NM
+    { name: "ClayBlock", color: "#925144" }, // NM
+    { name: "BlueDungeonBrick", color: "#42546D" }, // NM
+    { name: "HangingLanterns", color: "#FBEB7F" }, // NM
+    { name: "GreenDungeonBrick", color: "#54643F" }, // NM
+    { name: "PinkDungeonBrick", color: "#6B4463" }, // NM
+    { name: "GoldBrick", color: "#B9A417" }, // NM
+    { name: "Spikes", color: "#808080" }, // NM
+    { name: "WaterCandle", color: "#2B8FFF" }, // NM
+    { name: "Books", color: "#AA3072" }, // NM
+    { name: "Cobweb", color: "#C0CACB" }, // NM
+    { name: "Vines", color: "#17B14C" }, // NM
+    { name: "Sand", color: "#FFDA38" }, // NM
+    { name: "Obsidian", color: "#2B2854" }, // NM
+    { name: "Ash", color: "#44444C" }, // NM
+    { name: "Hellstone", color: "#8E4242" }, // NM
+    { name: "Mud", color: "#5C4449" }, // NM
+    { name: "JungleGrass", color: "#8FD71D" }, // NM
+    { name: "JunglePlants", color: "#87C41A" }, // NM
+    { name: "JungleVines", color: "#79B018" }, // NM
+    { name: "Sapphire", color: "#6E8CB6" }, // NM
+    { name: "Ruby", color: "#C46072" }, // NM
+    { name: "Emerald", color: "#389661" }, // NM
+    { name: "Topaz", color: "#A0763A" }, // NM
+    { name: "Amethyst", color: "#8C3AA6" }, // NM
+    { name: "Diamond", color: "#7DBFC5" }, // NM
+    { name: "JungleThorns", color: "#BE965C" }, // NM
+    { name: "MushroomGrass", color: "#5D7FFF" }, // NM
+    { name: "MushroomPlants", color: "#B6AF82" }, // NM
+    { name: "MushroomTrees", color: "#B6AF82" }, // NM
+    { name: "Plants2", color: "#1BC56D" }, // NM
+    { name: "JunglePlants2", color: "#60C51B" }, // NM
+    { name: "ObsidianBrick", color: "#242424" }, // NM
+    { name: "HellstoneBrick", color: "#8E4242" }, // NM
+    { name: "Hellforge", color: "#EE5546" }, // NM
+    { name: "Beds", color: "#BF8E6F" }, // NM
+    { name: "Cactus", color: "#497811" }, // NM
+    { name: "Coral", color: "#F585BF" }, // NM
+    { name: "ImmatureHerbs", color: "#FF7800" }, // NM
+    { name: "MatureHerbs", color: "#FF7800" }, // NM
+    { name: "BloomingHerbs", color: "#FF7800" }, // NM
+    { name: "Loom", color: "#BF8E6F" }, // NM
+    { name: "Pianos", color: "#BF8E6F" }, // NM
+    { name: "Dressers", color: "#BF8E6F" }, // NM
+    { name: "Benches", color: "#BF8E6F" }, // NM
+    { name: "Bathtubs", color: "#909490" }, // NM
+    { name: "Banners", color: "#0D5882" }, // NM
+    { name: "Lamps", color: "#FDDD03" }, // NM
+    { name: "Kegs", color: "#BF8E6F" }, // NM
+    { name: "Candelabras", color: "#FDDD03" }, // NM
+    { name: "Bookcases", color: "#BF8E6F" }, // NM
+    { name: "Bowls", color: "#8D624D" }, // NM
+    { name: "GrandfatherClocks", color: "#BF8E6F" }, // NM
+    { name: "Statues", color: "#909490" }, // NM
+    { name: "Sawmill", color: "#BF8E6F" }, // NM
+    { name: "Ebonsand", color: "#67627A" }, // NM
+    { name: "IridescentBrick", color: "#6B5C6C" }, // NM
+    { name: "Mudstone", color: "#5C4449" }, // NM
+    { name: "Silt", color: "#6A6B76" }, // NM
+    { name: "WoodenBeam", color: "#493324" }, // NM
+    { name: "ActiveStoneBlock", color: "#A0A0A0" }, // NM
+    { name: "PressurePlates", color: "#FD7272" }, // NM
+    { name: "Switches", color: "#D5CBCC" }, // NM
+    { name: "Traps", color: "#909490" }, // NM
+    { name: "Boulder", color: "#606060" }, // NM
+    { name: "Explosives", color: "#C03B3B" }, // NM
+    { name: "SnowBlock", color: "#D3ECF1" }, // NM
+    { name: "SandstoneBrick", color: "#BEAB5E" }, // NM
+    { name: "RichMahogany", color: "#915155" }, // NM
+    { name: "IceBlock", color: "#90C3E8" }, // NM
+    { name: "BreakableIce", color: "#B8DBF0" }, // NM
+    { name: "CorruptIce", color: "#AE91D6" }, // NM
+    { name: "Stalactite", color: "#646464" }, // NM
+    { name: "Tin", color: "#817D5D" }, // NM
+    { name: "Lead", color: "#3E5272" }, // NM
+    { name: "Tungsten", color: "#849D7F" }, // NM
+    { name: "Platinum", color: "#98ABC6" }, // NM
+    { name: "TinBrick", color: "#817D5D" }, // NM
+    { name: "ExposedGems", color: "#FF00FF" }, // NM
+    { name: "GreenMoss", color: "#318672" }, // NM
+    { name: "BrownMoss", color: "#7E8631" }, // NM
+    { name: "RedMoss", color: "#863B31" }, // NM
+    { name: "BlueMoss", color: "#2B568C" }, // NM
+    { name: "PurpleMoss", color: "#793186" }, // NM
+    { name: "LongMoss", color: "#646464" }, // NM
+    { name: "SmallPiles", color: "#959573" }, // NM
+    { name: "LargePiles", color: "#FF00FF" }, // NM
+    { name: "LargePiles2", color: "#FF00FF" }, // NM
+    { name: "CactusBlock", color: "#497811" }, // NM
+    { name: "Cloud", color: "#DFFFFF" }, // NM
+    { name: "MushroomBlock", color: "#B6AF82" }, // NM
+    { name: "LivingWood", color: "#976B4B" }, // NM
+    { name: "LeafBlock", color: "#1AC454" }, // NM
+    { name: "RainCloud", color: "#9390B2" }, // NM
+    { name: "CrimsonGrass", color: "#D05050" }, // NM
+    { name: "FleshIce", color: "#D89890" }, // NM
+    { name: "CrimsonPlants", color: "#CB3D40" }, // NM
+    { name: "Sunplate", color: "#D5B21C" }, // NM
+    { name: "Crimstone", color: "#802C2D" }, // NM
+    { name: "Crimtane", color: "#7D3741" }, // NM
+    { name: "CrimsonVines", color: "#BA3234" }, // NM
+    { name: "WaterFountain", color: "#909490" }, // NM
+    { name: "Campfire", color: "#FE7902" }, // NM
+    { name: "Extractinator", color: "#909490" }, // NM
+    { name: "Slush", color: "#6B848B" }, // NM
+    { name: "Hive", color: "#E37D16" }, // NM
+    { name: "LihzahrdBrick", color: "#8D3800" }, // NM
+    { name: "DyePlants", color: "#FFFFFF" }, // NM
+    { name: "DyeVat", color: "#909490" }, // NM
+    { name: "HoneyBlock", color: "#FF9C0C" }, // NM
+    { name: "CrispyHoneyBlock", color: "#834F0D" }, // NM
+    { name: "Larva", color: "#E0C265" }, // NM
+    { name: "WoodenSpikes", color: "#915155" }, // NM
+    { name: "PlantDetritus", color: "#FF00FF" }, // NM
+    { name: "Crimsand", color: "#352C29" }, // NM
+    { name: "LihzahrdAltar", color: "#FFF133" }, // NM
+    { name: "Painting3X3", color: "#63321E" }, // NM
+    { name: "Painting4X3", color: "#4D4A48" }, // NM
+    { name: "Painting6X4", color: "#63321E" }, // NM
+    { name: "Painting2X3", color: "#63321E" }, // NM
+    { name: "Painting3X2", color: "#63321E" }, // NM
+    { name: "SapphireGemspark", color: "#4F66FF" }, // NM
+    { name: "LivingLoom", color: "#909490" }, // NM
+    { name: "MinecartTrack", color: "#B5A47D" }, // NM
+    { name: "BorealWood", color: "#604D40" }, // NM
+    { name: "PalmTree", color: "#B68D56" }, // NM
+    { name: "BeachPiles", color: "#E4D5AD" }, // NM
+    { name: "GoldCoinPile", color: "#CCB548" }, // NM
+    { name: "MushroomStatue", color: "#909490" }, // NM
+    { name: "CrimsonThorns", color: "#EE615E" }, // NM
+    { name: "BewitchingTable", color: "#8D6B59" }, // NM
+    { name: "AlchemyTable", color: "#8D6B59" }, // NM
+    { name: "MarbleBlock", color: "#A8B2CC" }, // NM
+    { name: "Marble", color: "#A8B2CC" }, // NM
+    { name: "Granite", color: "#322E68" }, // NM
+    { name: "GraniteBlock", color: "#322E68" }, // NM
+    { name: "WaterDrip", color: "#093DBF" }, // NM
+    { name: "LavaDrip", color: "#FD2003" }, // NM
+    { name: "HoneyDrip", color: "#FF9C0C" }, // NM
+    { name: "SharpeningStation", color: "#BF8E6F" }, // NM
+    { name: "LavaMoss", color: "#fc5104" },
+    { name: "VineFlowers", color: "#1e9648" },
+    { name: "LivingMahogany", color: "#dc8c94" },
+    { name: "LivingMahoganyLeaves", color: "#64940c" },
+    { name: "Sandstone", color: "#d4945c" },
+    { name: "HardenedSand", color: "#99703c" },
+    { name: "CorruptHardenedSand", color: "#372742" },
+    { name: "CrimsonHardenedSand", color: "#3c140c" },
+    { name: "CorruptSandstone", color: "#382844" },
+    { name: "CrimsonSandstone", color: "#493c34" },
+    { name: "DesertFossil", color: "#b46a4a" },
+    { name: "Detonator", color: "#e32d2d" },
+    { name: "GeyserTrap", color: "#A4A4A4" },
+    { name: "BeeHive", color: "#9C845C" },
+    { name: "SandDrip", color: "#FFDA38" }, // , (no clue what it's supposed to be, likely takes on biome color? Sand color for now)
+    { name: "Containers2", color: "#E9CF5E" },
+    { name: "Tables2", color: "#BF8E6F" },
+    { name: "CrackedBlueDungeonBrick", color: "#546c7c" },
+    { name: "CrackedGreenDungeonBrick", color: "#546454" },
+    { name: "CrackedPinkDungeonBrick", color: "#8c446c" },
+    { name: "RollingCactus", color: "#7c9c1c" },
+    { name: "AntlionLarva", color: "#ccbca4" },
+    { name: "FallenLog", color: "#d15558" }, //  (redish)
+    { name: "ShellPile", color: "#f5e7d3" },
+    { name: "CatBast", color: "#a91e26" }, //  (deeper red)
+    { name: "LilyPad", color: "#1dbe62" },
+    { name: "Cattail", color: "#1e9652" },
+    { name: "MushroomVines", color: "#d7d3b5" },
+    { name: "SeaOats", color: "#dfbd96" },
+    { name: "OasisPlants", color: "#527d08" },
+    { name: "BoulderStatue", color: "#393939" },
+    { name: "KryptonMoss", color: "#74fc04" },
+    { name: "XenonMoss", color: "#02f3eb" },
+    { name: "ArgonMoss", color: "#d4047c" },
+    { name: "Seaweed", color: "#345414" },
+    { name: "MarbleColumn", color: "#848ca4" },
+    { name: "Bamboo", color: "#54621c" },
+    { name: "BorealBeam", color: "#4c3c34" },
+    { name: "RichMahoganyBeam", color: "#844c54" },
+    { name: "GraniteColumn", color: "#3c3474" },
+    { name: "SandstoneColumn", color: "#945c3c" },
+    { name: "MushroomBeam", color: "#8b856f" },
+    { name: "TreeTopaz", color: "#cc7c24" },
+    { name: "TreeAmethyst", color: "#eca0fc" },
+    { name: "TreeSapphire", color: "#a4e4fc" },
+    { name: "TreeEmerald", color: "#44bc8c" },
+    { name: "TreeRuby", color: "#c42c2c" },
+    { name: "TreeDiamond", color: "#a4e4ec" },
+    { name: "TreeAmber", color: "#c16604" },
+    { name: "VanityTreeSakura", color: "#745c4c" },
+    { name: "VanityTreeYellowWillow", color: "#945c54" },
+    { name: "VioletMoss", color: "#7c1cac" },
+    { name: "AshGrass", color: "#d48c64" },
+    { name: "TreeAsh", color: "#8c747c" },
+    { name: "CorruptVines", color: "#9991d4" },
+    { name: "AshPlants", color: "#f4cfa0" },
+    { name: "AshVines", color: "#da9169" },
+    { name: "GlowTulip", color: "#84dcc4" },
+    { name: "ShimmerBlock", color: "#fcecf1" },
+    { name: "CorruptJungleGrass", color: "#6c6cac" },
+    { name: "CrimsonJungleGrass", color: "#a84040" },
+    { name: "DirtiestBlock", color: "#74543c" }, //  (might highlight?)
+    { name: "Pearlstone", color: "#B5ACBE" },
+    { name: "HallowHardenedSand", color: "#AEA8BA" },
+    { name: "HallowedGrass", color: "#4EC1E3" },
+    { name: "Pearlsand", color: "#EEE1DA" },
+    { name: "HallowedIce", color: "#DAB6CC" },
+    { name: "HallowSandstone", color: "#CD98BA" },
+    { name: "HallowedVines", color: "#21ABCF" },
 ];
 
 const liquids_worker = [
-    { name: "Water", color: "#093dbf"},
-    { name: "Lava", color: "#fd2003"},
-    { name: "Honey", color: "#fec214"},
+    { name: "Water", color: "#093dbf" },
+    { name: "Lava", color: "#fd2003" },
+    { name: "Honey", color: "#fec214" },
     { name: "Shimmer", color: "#8e76c4"}
 ];
 
 const walls_worker = [
-    { name: "None", color: "#000000"},
-    { name: "Stone", color: "#343434"}, // NM
-    { name: "DirtUnsafe", color: "#583D2E"}, // NM
-    { name: "EbonstoneUnsafe", color: "#3D3A4E"}, // NM
-    { name: "BlueDungeonUnsafe", color: "#272D39"}, // NM
-    { name: "GreenDungeonUnsafe", color: "#25311F"}, // NM
-    { name: "PinkDungeonUnsafe", color: "#3B2534"}, // NM
-    { name: "GoldBrick", color: "#4A3E0C"}, // NM
-    { name: "HellstoneBrickUnsafe", color: "#432525"}, // NM
-    { name: "ObsidianBrickUnsafe", color: "#0F0F0F"}, // NM
-    { name: "MudUnsafe", color: "#342B2D"}, // NM
-    { name: "BlueDungeon", color: "#272D39"}, // NM
-    { name: "GreenDungeon", color: "#25311F"}, // NM
-    { name: "PinkDungeon", color: "#3B2534"}, // NM
-    { name: "Glass", color: "#8DB2FE"}, // NM
-    { name: "IridescentBrick", color: "#26262B"}, // NM
-    { name: "MudstoneBrick", color: "#352729"}, // NM
-    { name: "Planked", color: "#3E332C"}, // NM
-    { name: "SandstoneBrick", color: "#454329"}, // NM
-    { name: "SnowWallUnsafe", color: "#556667"}, // NM
-    { name: "RichMaogany", color: "#472A2C"}, // NM
-    { name: "TinBrick", color: "#3C3B33"}, // NM
-    { name: "AmethystUnsafe", color: "#401D4B"}, // NM
-    { name: "TopazUnsafe", color: "#4B381D"}, // NM
-    { name: "SapphireUnsafe", color: "#1D304B"}, // NM
-    { name: "EmeraldUnsafe", color: "#1D4B31"}, // NM
-    { name: "RubyUnsafe", color: "#4B1D26"}, // NM
-    { name: "DiamondUnsafe", color: "#1D474B"}, // NM
-    { name: "CaveUnsafe", color: "#283832"}, // NM
-    { name: "Cave2Unsafe", color: "#313024"}, // NM
-    { name: "Cave3Unsafe", color: "#2B2120"}, // NM
-    { name: "Cave4Unsafe", color: "#1F2831"}, // NM
-    { name: "Cave5Unsafe", color: "#302334"}, // NM
-    { name: "Cave6Unsafe", color: "#442F24"}, // NM
-    { name: "Cave7Unsafe", color: "#37271A"}, // NM
-    { name: "SpiderUnsafe", color: "#27211A"}, // NM
-    { name: "GrassUnsafe", color: "#1E5030"}, // NM
-    { name: "JungleUnsafe", color: "#35501E"}, // NM
-    { name: "FlowerUnsafe", color: "#225A36"}, // NM
-    { name: "Grass", color: "#1E5030"}, // NM
-    { name: "Jungle", color: "#35501E"}, // NM
-    { name: "Flower", color: "#1E5030"}, // NM
-    { name: "IceUnsafe", color: "#4E6987"}, // NM
-    { name: "Cloud", color: "#BECCDF"}, // NM
-    { name: "Mushroom", color: "#403E50"}, // NM
-    { name: "LivingWood", color: "#3F271A"}, // NM
-    { name: "ObsidianBackUnsafe", color: "#332F60"}, // NM
-    { name: "MushroomUnsafe", color: "#403E50"}, // NM
-    { name: "CrimsonGrassUnsafe", color: "#653333"}, // NM
-    { name: "DiscWall", color: "#4D4022"}, // NM
-    { name: "CrimstoneUnsafe", color: "#3E2629"}, // NM
-    { name: "HiveUnsafe", color: "#8A4926"}, // NM
-    { name: "LihzahrdBrickUnsafe", color: "#320F08"}, // NM
-    { name: "BlueDungeonSlabUnsafe", color: "#2A3A42"}, // NM
-    { name: "BlueDungeonTileUnsafe", color: "#32324E"}, // NM
-    { name: "PinkDungeonSlabUnsafe", color: "#45324E"}, // NM
-    { name: "PinkDungeonTileUnsafe", color: "#4E324E"}, // NM
-    { name: "GreenDungeonSlabUnsafe", color: "#293F2D"}, // NM
-    { name: "GreenDungeonTileUnsafe", color: "#324E45"}, // NM
-    { name: "BlueDungeonSlab", color: "#2A3A42"}, // NM
-    { name: "BlueDungeonTile", color: "#32324E"}, // NM
-    { name: "PinkDungeonSlab", color: "#45324E"}, // NM
-    { name: "PinkDungeonTile", color: "#4E324E"}, // NM
-    { name: "GreenDungeonSlab", color: "#293F2D"}, // NM
-    { name: "GreenDungeonTile", color: "#324E45"}, // NM
-    { name: "BorealWood", color: "#604752"}, // NM
-    { name: "CaveWall", color: "#6C4A44"}, // NM
-    { name: "CaveWall2", color: "#643F42"}, // NM
-    { name: "MarbleUnsafe", color: "#6F7587"}, // NM
-    { name: "MarbleBlock", color: "#6F7587"}, // NM
-    { name: "GraniteUnsafe", color: "#191736"}, // NM
-    { name: "GraniteBlock", color: "#191736"}, // NM
-    { name: "Cave8Unsafe", color: "#343434"}, // NM
-    { name: "Sandstone", color: "#955033"}, // NM
-    { name: "DirtUnsafe1", color: "#614333"}, // NM
-    { name: "DirtUnsafe2", color: "#70503E"}, // NM
-    { name: "DirtUnsafe3", color: "#583D2E"}, // NM
-    { name: "DirtUnsafe4", color: "#7F5E4C"}, // NM
-    { name: "JungleUnsafe1", color: "#4A433C"}, // NM
-    { name: "JungleUnsafe2", color: "#3C4E3B"}, // NM
-    { name: "JungleUnsafe3", color: "#003615"}, // NM
-    { name: "JungleUnsafe4", color: "#4A6148"}, // NM
-    { name: "LavaUnsafe1", color: "#282523"}, // NM
-    { name: "LavaUnsafe2", color: "#4D3F42"}, // NM
-    { name: "LavaUnsafe3", color: "#6F0606"}, // NM
-    { name: "LavaUnsafe4", color: "#58433B"}, // NM
-    { name: "RocksUnsafe1", color: "#585750"}, // NM
-    { name: "RocksUnsafe2", color: "#474743"}, // NM
-    { name: "RocksUnsafe3", color: "#4C343C"}, // NM
-    { name: "RocksUnsafe4", color: "#59303B"}, // NM
-    { name: "HardenedSand", color: "#9E6440"}, // NM
-    { name: "CorruptHardenedSand", color: "#3E2D4B"}, // NM
-    { name: "CrimsonHardenedSand", color: "#390E0C"}, // NM
-    { name: "CorruptSandstone", color: "#433750"}, // NM
-    { name: "CrimsonSandstone", color: "#40251D"}, // NM
-    { name: "LivingWoodUnsafe", color: "#382414"},
+    { name: "None", color: "#000000" },
+    { name: "Stone", color: "#343434" }, // NM
+    { name: "DirtUnsafe", color: "#583D2E" }, // NM
+    { name: "EbonstoneUnsafe", color: "#3D3A4E" }, // NM
+    { name: "BlueDungeonUnsafe", color: "#272D39" }, // NM
+    { name: "GreenDungeonUnsafe", color: "#25311F" }, // NM
+    { name: "PinkDungeonUnsafe", color: "#3B2534" }, // NM
+    { name: "GoldBrick", color: "#4A3E0C" }, // NM
+    { name: "HellstoneBrickUnsafe", color: "#432525" }, // NM
+    { name: "ObsidianBrickUnsafe", color: "#0F0F0F" }, // NM
+    { name: "MudUnsafe", color: "#342B2D" }, // NM
+    { name: "BlueDungeon", color: "#272D39" }, // NM
+    { name: "GreenDungeon", color: "#25311F" }, // NM
+    { name: "PinkDungeon", color: "#3B2534" }, // NM
+    { name: "Glass", color: "#8DB2FE" }, // NM
+    { name: "IridescentBrick", color: "#26262B" }, // NM
+    { name: "MudstoneBrick", color: "#352729" }, // NM
+    { name: "Planked", color: "#3E332C" }, // NM
+    { name: "SandstoneBrick", color: "#454329" }, // NM
+    { name: "SnowWallUnsafe", color: "#556667" }, // NM
+    { name: "RichMaogany", color: "#472A2C" }, // NM
+    { name: "TinBrick", color: "#3C3B33" }, // NM
+    { name: "AmethystUnsafe", color: "#401D4B" }, // NM
+    { name: "TopazUnsafe", color: "#4B381D" }, // NM
+    { name: "SapphireUnsafe", color: "#1D304B" }, // NM
+    { name: "EmeraldUnsafe", color: "#1D4B31" }, // NM
+    { name: "RubyUnsafe", color: "#4B1D26" }, // NM
+    { name: "DiamondUnsafe", color: "#1D474B" }, // NM
+    { name: "CaveUnsafe", color: "#283832" }, // NM
+    { name: "Cave2Unsafe", color: "#313024" }, // NM
+    { name: "Cave3Unsafe", color: "#2B2120" }, // NM
+    { name: "Cave4Unsafe", color: "#1F2831" }, // NM
+    { name: "Cave5Unsafe", color: "#302334" }, // NM
+    { name: "Cave6Unsafe", color: "#442F24" }, // NM
+    { name: "Cave7Unsafe", color: "#37271A" }, // NM
+    { name: "SpiderUnsafe", color: "#27211A" }, // NM
+    { name: "GrassUnsafe", color: "#1E5030" }, // NM
+    { name: "JungleUnsafe", color: "#35501E" }, // NM
+    { name: "FlowerUnsafe", color: "#225A36" }, // NM
+    { name: "Grass", color: "#1E5030" }, // NM
+    { name: "Jungle", color: "#35501E" }, // NM
+    { name: "Flower", color: "#1E5030" }, // NM
+    { name: "IceUnsafe", color: "#4E6987" }, // NM
+    { name: "Cloud", color: "#BECCDF" }, // NM
+    { name: "Mushroom", color: "#403E50" }, // NM
+    { name: "LivingWood", color: "#3F271A" }, // NM
+    { name: "ObsidianBackUnsafe", color: "#332F60" }, // NM
+    { name: "MushroomUnsafe", color: "#403E50" }, // NM
+    { name: "CrimsonGrassUnsafe", color: "#653333" }, // NM
+    { name: "DiscWall", color: "#4D4022" }, // NM
+    { name: "CrimstoneUnsafe", color: "#3E2629" }, // NM
+    { name: "HiveUnsafe", color: "#8A4926" }, // NM
+    { name: "LihzahrdBrickUnsafe", color: "#320F08" }, // NM
+    { name: "BlueDungeonSlabUnsafe", color: "#2A3A42" }, // NM
+    { name: "BlueDungeonTileUnsafe", color: "#32324E" }, // NM
+    { name: "PinkDungeonSlabUnsafe", color: "#45324E" }, // NM
+    { name: "PinkDungeonTileUnsafe", color: "#4E324E" }, // NM
+    { name: "GreenDungeonSlabUnsafe", color: "#293F2D" }, // NM
+    { name: "GreenDungeonTileUnsafe", color: "#324E45" }, // NM
+    { name: "BlueDungeonSlab", color: "#2A3A42" }, // NM
+    { name: "BlueDungeonTile", color: "#32324E" }, // NM
+    { name: "PinkDungeonSlab", color: "#45324E" }, // NM
+    { name: "PinkDungeonTile", color: "#4E324E" }, // NM
+    { name: "GreenDungeonSlab", color: "#293F2D" }, // NM
+    { name: "GreenDungeonTile", color: "#324E45" }, // NM
+    { name: "BorealWood", color: "#604752" }, // NM
+    { name: "CaveWall", color: "#6C4A44" }, // NM
+    { name: "CaveWall2", color: "#643F42" }, // NM
+    { name: "MarbleUnsafe", color: "#6F7587" }, // NM
+    { name: "MarbleBlock", color: "#6F7587" }, // NM
+    { name: "GraniteUnsafe", color: "#191736" }, // NM
+    { name: "GraniteBlock", color: "#191736" }, // NM
+    { name: "Cave8Unsafe", color: "#343434" }, // NM
+    { name: "Sandstone", color: "#955033" }, // NM
+    { name: "DirtUnsafe1", color: "#614333" }, // NM
+    { name: "DirtUnsafe2", color: "#70503E" }, // NM
+    { name: "DirtUnsafe3", color: "#583D2E" }, // NM
+    { name: "DirtUnsafe4", color: "#7F5E4C" }, // NM
+    { name: "JungleUnsafe1", color: "#4A433C" }, // NM
+    { name: "JungleUnsafe2", color: "#3C4E3B" }, // NM
+    { name: "JungleUnsafe3", color: "#003615" }, // NM
+    { name: "JungleUnsafe4", color: "#4A6148" }, // NM
+    { name: "LavaUnsafe1", color: "#282523" }, // NM
+    { name: "LavaUnsafe2", color: "#4D3F42" }, // NM
+    { name: "LavaUnsafe3", color: "#6F0606" }, // NM
+    { name: "LavaUnsafe4", color: "#58433B" }, // NM
+    { name: "RocksUnsafe1", color: "#585750" }, // NM
+    { name: "RocksUnsafe2", color: "#474743" }, // NM
+    { name: "RocksUnsafe3", color: "#4C343C" }, // NM
+    { name: "RocksUnsafe4", color: "#59303B" }, // NM
+    { name: "HardenedSand", color: "#9E6440" }, // NM
+    { name: "CorruptHardenedSand", color: "#3E2D4B" }, // NM
+    { name: "CrimsonHardenedSand", color: "#390E0C" }, // NM
+    { name: "CorruptSandstone", color: "#433750" }, // NM
+    { name: "CrimsonSandstone", color: "#40251D" }, // NM
+    { name: "LivingWoodUnsafe", color: "#382414" },
+    { name: "CorruptGrassUnsafe", color: "#2B2A44" },
+    { name: "CrimsonGrassUnsafe", color: "#653333" },
+    { name: "HallowedGrassUnsafe", color: "#1E4650" },
+    { name: "HallowHardenedSand", color: "#604885" },
+    { name: "HallowSandstone", color: "#46335B" },
+    { name: "PearlstoneBrickUnsafe", color: "#515465" },
+    { name: "CrimsonUnsafe1", color: "#904334" },
+    { name: "CrimsonUnsafe2", color: "#953030" },
+    { name: "CrimsonUnsafe3", color: "#6F2024" },
+    { name: "CrimsonUnsafe4", color: "#933037" },
+    { name: "CorruptionUnsafe1", color: "#523F50" },
+    { name: "CorruptionUnsafe2", color: "#413D4D" },
+    { name: "CorruptionUnsafe3", color: "#40415C" },
+    { name: "CorruptionUnsafe4", color: "#4C3554" },
+    { name: "HallowUnsafe1", color: "#8F327B" },
+    { name: "HallowUnsafe2", color: "#887883" },
+    { name: "HallowUnsafe3", color: "#DB5C8F" },
+    { name: "HallowUnsafe4", color: "#714096" },
 ];
 
 const FALLBACK_COLOR_WORKER = '#FF00FF';
@@ -641,7 +666,6 @@ self.onmessage = async (e) => {
         }
     }
     else if (command === 'saveWorldFile') {
-        currentWorldId = worldId; // Set context for any logs
         if (!Module || !Module.ccall) {
             self.postMessage({ worldId, type: 'error', message: 'WASM Module not ready for saving.' });
             return;
@@ -684,35 +708,61 @@ self.onmessage = async (e) => {
              }
         }
     }
-    else if (command === 'getTileInfo') {
-                if (!this.tileDataView) return "Tile data not available.";
-        const offset = this._getTileOffset(tileX, tileY);
-        if (offset === -1) return `Out of bounds: (${tileX},${tileY})`;
+    else if (command === 'simulateHardmode') {
+        if (!Module || !Module.ccall) {
+            self.postMessage({ worldId, type: 'error', message: 'WASM Module not ready for hardmode simulation.' });
+            return;
+        }
 
-        const typeId = this.tileDataView[offset + TILE_OFFSET_TYPE];
-        const wallId = this.tileDataView[offset + TILE_OFFSET_WALL];
-        const flagsLowByte = this.tileDataView[offset + TILE_OFFSET_FLAGS];
-        const flagsHighByte = this.tileDataView[offset + TILE_OFFSET_FLAGS + 1];
-        const packedFlags = (flagsHighByte << 8) | flagsLowByte;
-        const liquidAmount = this.tileDataView[offset + TILE_OFFSET_LIQUID];
+        if (e.data.canvasWidth && e.data.canvasHeight) {
+            worldWidth_worker = e.data.canvasWidth;
+            worldHeight_worker = e.data.canvasHeight;
+            
+            try {
+                // Recreate or clear canvas
+                if (!workerOffscreenCanvas || 
+                    workerOffscreenCanvas.width !== worldWidth_worker * TILE_SIZE_ON_WORKER_CANVAS ||
+                    workerOffscreenCanvas.height !== worldHeight_worker * TILE_SIZE_ON_WORKER_CANVAS) {
+                    workerOffscreenCanvas = new OffscreenCanvas(
+                        worldWidth_worker * TILE_SIZE_ON_WORKER_CANVAS,
+                        worldHeight_worker * TILE_SIZE_ON_WORKER_CANVAS
+                    );
+                    workerCtx = workerOffscreenCanvas.getContext('2d', { alpha: false });
+                    workerCtx.imageSmoothingEnabled = false;
+                }
+                drawBackgroundLayersToWorkerContext(); // Redraw background for the hardmode state
 
-        const isActive = (packedFlags & TILE_FLAG_ACTIVE) !== 0;
-        const liquidTypeId = (packedFlags & TILE_FLAG_LIQ_TYPE) >> LIQUID_TYPE_SHIFT;
+                const totalTiles = worldWidth_worker * worldHeight_worker;
+                const bufferSize = totalTiles * TILE_DATA_STRIDE;
+                if (!workerCompactTileBuffer || workerCompactTileBuffer.byteLength !== bufferSize) {
+                    workerCompactTileBuffer = new ArrayBuffer(bufferSize);
+                }
 
-        let info = `Tile (${tileX},${tileY}):\n`;
-        if (isActive) {
-            info += `Type: ${tiles[typeId]?.name || `Unknown (${typeId})`}\n`;
+                workerTileDataView = new Uint8Array(workerCompactTileBuffer);
+                workerTileDataView.fill(0); // Initialize/clear the buffer
+
+            } catch (canvasError) {
+                console.error(`Worker ${currentWorldId}: OffscreenCanvas/Buffer setup for hardmode failed`, canvasError);
+                self.postMessage({ worldId: currentWorldId, type: 'error', message: `Worker OffscreenCanvas/Buffer error (hardmode): ${canvasError.message}`});
+                return; 
+            }
+        } else {
+             console.error(`Worker ${currentWorldId}: Canvas dimensions not provided for hardmode simulation.`);
+             self.postMessage({ worldId: currentWorldId, type: 'error', message: 'Worker canvas dimensions missing for hardmode.' });
+             return;
         }
-        if (liquidAmount > 0) {
-            info += `Liquid: ${liquids[liquidTypeId]?.name || `Unknown (${liquidTypeId})`} (Amt: ${liquidAmount})\n`;
+
+        try {
+            self.postMessage({ worldId: currentWorldId, type: 'status', status: 'simulating_hardmode' });
+            Module.ccall('simulate_hardmode', null, [], []);
+            
+        } catch (err) {
+            console.error(`Worker ${currentWorldId}: Hardmode simulation C++ call error`, err);
+            let errorMessage = `Hardmode C++ call error: ${err.message || err}`;
+            if (err.name === 'ExitStatus') {
+                errorMessage = `Hardmode C++ call exited with status: ${err.status}`;
+            }
+            self.postMessage({ worldId: currentWorldId, type: 'error', message: errorMessage });
         }
-        if (wallId > 0 && !isActive) { // Show wall only if no active tile covering it
-            info += `Wall: ${walls[wallId]?.name || `Unknown (${wallId})`}\n`;
-        }
-        if (!isActive && liquidAmount === 0 && wallId === 0) {
-            info += "Air\n";
-        }
-        // info += `Raw Flags: 0x${packedFlags.toString(16).padStart(4,'0')}`;
-        return info.trim();
     }
 };
