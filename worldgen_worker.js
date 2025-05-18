@@ -576,6 +576,9 @@ const visualizerAppWorkerHandlers = {
         }
         // Send to main thread if it needs this info for other purposes
         self.postMessage({ worldId: currentWorldId, type: 'update_levels', payload: { surface, rock, hell } });
+    },
+    updateInfo: (numOasis, worldSurfaceHigh, mountCaves, tunnels, extraBastStatueCount, numOceanCaveTreasure, jungleChests, larva, floatingIslands, chests, spawnTileX, spawnTileY, hearts, lifeCrystals) => {
+        self.postMessage({ worldId: currentWorldId, type: 'update_info', payload: { numOasis, worldSurfaceHigh, mountCaves, tunnels, extraBastStatueCount, numOceanCaveTreasure, jungleChests, larva, floatingIslands, chests, spawnTileX, spawnTileY, hearts, lifeCrystals } });
     }
 };
 

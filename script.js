@@ -477,6 +477,25 @@ class WorldDisplay {
         this.surfaceLayerY = this.worldHeight * 0.25;
         this.rockLayerY = this.worldHeight * 0.4;
         this.hellLayerY = this.worldHeight - 200;
+
+
+        this.genInfo = {
+            numOasis: 0,
+            worldSurfaceHigh: 0,
+            mountCaves: 0,
+            tunnels: 0,
+            extraBastStatueCount: 0,
+            numOceanCaveTreasure: 0,
+            jungleChests: 0,
+            larva: 0,
+            floatingIslands: 0,
+            chests: 0,
+            spawnTileX: 0,
+            spawnTileY: 0,
+            hearts: 0,
+            lifeCrystals: 0
+        };
+
     }
 
     startGeneration() {
@@ -636,6 +655,26 @@ class WorldDisplay {
                 this.rockLayerY = payload.rock;
                 this.hellLayerY = payload.hell;
                 break;
+            case 'update_info':
+                this.genInfo.surfaceLayerY = payload.surface;
+                this.genInfo.rockLayerY = payload.rock;
+                this.genInfo.hellLayerY = payload.hell;
+                this.genInfo.numOasis = payload.numOasis;
+                this.genInfo.worldSurfaceHigh = payload.worldSurfaceHigh;
+                this.genInfo.mountCaves = payload.mountCaves;
+                this.genInfo.tunnels = payload.tunnels;
+                this.genInfo.extraBastStatueCount = payload.extraBastStatueCount;
+                this.genInfo.numOceanCaveTreasure = payload.numOceanCaveTreasure;
+                this.genInfo.jungleChests = payload.jungleChests;
+                this.genInfo.larva = payload.larva;
+                this.genInfo.floatingIslands = payload.floatingIslands;
+                this.genInfo.chests = payload.chests;
+                this.genInfo.spawnTileX = payload.spawnTileX;
+                this.genInfo.spawnTileY = payload.spawnTileY;
+                this.genInfo.hearts = payload.hearts;
+                this.genInfo.lifeCrystals = payload.lifeCrystals;
+                needsUIRedraw = true;
+                break;
             case 'world_file_data': {
                 //addLog(`World ${this.id}: Received file data for ${payload.fileName}. Triggering download.`);
                 try {
@@ -771,6 +810,21 @@ class WorldDisplay {
         saveSelectedWldButton.disabled = !canSave;
         simulateHardmodeButton.disabled = !canSimulateHardmode;
         regenerateSelectedButton.disabled = false; // Can always regenerate a selected world
+
+
+        document.getElementById('infoSpawn').textContent = `${this.genInfo.spawnTileX}, ${this.genInfo.spawnTileY}`;
+        document.getElementById('infoSurfaceHigh').textContent = this.genInfo.worldSurfaceHigh.toFixed(2);
+        document.getElementById('infoHearts').textContent = this.genInfo.hearts;
+        document.getElementById('infoLifeCrystals').textContent = this.genInfo.lifeCrystals;
+        document.getElementById('infoChests').textContent = this.genInfo.chests;
+        document.getElementById('infoFloatingIslands').textContent = this.genInfo.floatingIslands;
+        document.getElementById('infoNumOasis').textContent = this.genInfo.numOasis;
+        document.getElementById('infoMountCaves').textContent = this.genInfo.mountCaves;
+        document.getElementById('infoTunnels').textContent = this.genInfo.tunnels;
+        document.getElementById('infoExtraBast').textContent = this.genInfo.extraBastStatueCount;
+        document.getElementById('infoOceanCaveTreasure').textContent = this.genInfo.numOceanCaveTreasure;
+        document.getElementById('infoJungleChests').textContent = this.genInfo.jungleChests;
+        document.getElementById('infoLarva').textContent = this.genInfo.larva;
 
         selectedWorldControlsUI.style.display = 'block';
     }
@@ -986,6 +1040,13 @@ const worldManager = {
                 worldToRegen.zoomFocalPointWorldX = worldToRegen.worldWidth / 2;
                 worldToRegen.zoomFocalPointWorldY = worldToRegen.worldHeight / 2;
                 worldToRegen.hasValidFocalPoint = false;
+
+                worldToRegen.genInfo = { // Reset to defaults
+                    numOasis: 0, worldSurfaceHigh: 0, mountCaves: 0, tunnels: 0,
+                    extraBastStatueCount: 0, numOceanCaveTreasure: 0, jungleChests: 0,
+                    larva: 0, floatingIslands: 0, chests: 0, spawnTileX: 0,
+                    spawnTileY: 0, hearts: 0
+                };
 
                 // Add to front of queue for potentially faster processing
                 this.generationQueue.unshift(worldToRegen);
