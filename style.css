@@ -117,6 +117,29 @@ body {
 }
 
 
+.info-box {
+    background-color: #383c44;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 15px;
+    font-size: 0.9em;
+}
+.info-box h4 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: var(--accent-color);
+    font-size: 1em;
+}
+.info-box p {
+    margin: 4px 0;
+    line-height: 1.4;
+}
+.info-box p span {
+    font-weight: bold;
+    color: #f0f0f0;
+}
+
+
 .progress-bar-container {
     width: 100%;
     background-color: #555;
