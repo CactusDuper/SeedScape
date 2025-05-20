@@ -1843,7 +1843,7 @@ const worldManager = {
             
             let scaleFactor = currentPinchDistance / this._initialPinchDistance;
             targetWorld.currentZoom *= scaleFactor;
-            targetWorld.currentZoom = Math.max(0.05, Math.min(128, targetWorld.currentZoom));
+            targetWorld.currentZoom = Math.max(1, Math.min(128, targetWorld.currentZoom));
     
             if (targetWorld.currentZoom !== oldZoom) {
                 const k = targetWorld.currentZoom / oldZoom;
