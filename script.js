@@ -1083,6 +1083,9 @@ const worldManager = {
                 addLog(`Regenerating world ${this.selectedWorld.id}...`);
                 const worldToRegen = this.selectedWorld;
                 
+                const newSizeOption = worldSizeSelect.options[worldSizeSelect.selectedIndex];
+                const newWorldWidth = parseInt(newSizeOption.dataset.width);
+                const newWorldHeight = parseInt(newSizeOption.dataset.height);
 
                 let seedFromInput = parseInt(baseSeedInput.value, 10);
                 if (isNaN(seedFromInput)) {
@@ -1109,6 +1112,10 @@ const worldManager = {
                 worldToRegen.tileDataView = null;
                 worldToRegen.status = 'idle'; // Reset status
                 worldToRegen.currentFunctionName = "N/A";
+
+                worldToRegen.worldSizeOption = newSizeOption;
+                worldToRegen.worldWidth = newWorldWidth;
+                worldToRegen.worldHeight = newWorldHeight;
 
                 // Reset view
                 worldToRegen.panX = 0;
