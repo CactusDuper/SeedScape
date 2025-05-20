@@ -117,6 +117,17 @@ body {
 }
 
 
+.structure-toggles { margin-top: 15px; }
+#structureToggleContainer label {
+    display: block;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+#structureToggleContainer input[type="checkbox"] {
+    margin-right: 8px;
+    width: auto;
+}
+
 .info-box {
     background-color: #383c44;
     padding: 10px;

@@ -43,6 +43,16 @@ const TILE_FLAG_LIQ_TYPE = 0x0600;  // Mask for liquid type (bits 9 and 10)
 const LIQUID_TYPE_SHIFT = 9;       // Shift to get liquid type to 0-3 range
 const MAX_SEED_VALUE = 2147483647; // 2^31 - 1
 
+
+const EStructure = {
+    None: 0, Chambers: 1, Anthill: 2, LarvaHole: 3, Pit: 4, DuneHill: 5,
+    GraniteBiome: 6, MarbleBiome: 7, IceThing: 8, Hive: 9, HoneyPatch: 10,
+    Campsite: 11, EnchantedSwordFake: 12, EnchantedSwordReal: 13,
+    MahoganyTree: 14, MiningExplosiveThing: 15, WoodHouse: 16, DesertHouse: 17,
+    GraniteHouse: 18, IceHouse: 19, JungleHouse: 20, MarbleHouse: 21,
+    MushroomHouse: 22, Shimmer: 23, JungleHut: 24, DesertHive: 25
+};
+
 const tiles = [
     { name: "Dirt", color: "#976B4B" }, // NM
     { name: "Stone", color: "#808080" }, // NM
@@ -429,6 +439,14 @@ const EVENT_TYPES = {
 
 const TILE_SIZE_ON_OFFSCREEN = 1; // Render tiles at 1x1 on their offscreen canvas for max detail
 
+function getEStructureName(typeId) {
+    for (const name in EStructure) {
+        if (EStructure[name] === typeId) {
+            return name;
+        }
+    }
+    return `Unknown (${typeId})`;
+}
 
 function addLog(message, type = 'info') {
     const logEntry = document.createElement('div');
@@ -461,6 +479,10 @@ class WorldDisplay {
 
         this.compactTileBuffer = null;
         this.tileDataView = null;
+
+        this.structures = []; // Array to store { x, y, width, height, type, isProtected, id (unique ID) }
+        this.structureTypeVisibility = {}; // e.g., { EStructure.Chambers: true, EStructure.Hive: false }
+        this.nextStructureId = 0; // For unique IDs for hover interaction
 
         this.viewportRect = { x: 0, y: 0, width: 0, height: 0 }; // Calculated by layoutManager
         this.panX = 0;
@@ -496,6 +518,29 @@ class WorldDisplay {
             lifeCrystals: 0
         };
 
+    }
+
+    addStructure(data) {
+        this.structures.push({ ...data, id: this.nextStructureId++ });
+        // By default, make new structure types visible
+        if (this.structureTypeVisibility[data.type] === undefined) {
+            this.structureTypeVisibility[data.type] = true;
+        }
+    }
+
+    clearStructures() {
+        this.structures = [];
+        // Reset visibility, or keep user's preference, not sure yet
+        // this.structureTypeVisibility = {};
+    }
+
+    toggleStructureTypeVisibility(structureType) {
+        if (this.structureTypeVisibility[structureType] === undefined) {
+            this.structureTypeVisibility[structureType] = false; // Default to false if toggling an unknown one first
+        } else {
+            this.structureTypeVisibility[structureType] = !this.structureTypeVisibility[structureType];
+        }
+        worldManager.requestRedraw(); // Request redraw as overlay will change
     }
 
     startGeneration() {
@@ -585,6 +630,7 @@ class WorldDisplay {
         if (worldId !== this.id) return; // Message not for this world
 
         let needsUIRedraw = false;
+        let needsSidebarToggleUpdate = false;
 
         switch (type) {
             case 'log':
@@ -675,6 +721,19 @@ class WorldDisplay {
                 this.genInfo.lifeCrystals = payload.lifeCrystals;
                 needsUIRedraw = true;
                 break;
+            case 'batch_structures_added':
+            if (payload && Array.isArray(payload)) {
+                this.clearStructures();
+                payload.forEach(structData => {
+                    this.addStructure(structData);
+                });
+                addLog(`World ${this.id}: Received batch of ${payload.length} structures.`);
+                if (worldManager.selectedWorld === this) {
+                    needsSidebarToggleUpdate = true;
+                    needsUIRedraw = true;
+                }
+            }
+            break;
             case 'world_file_data': {
                 //addLog(`World ${this.id}: Received file data for ${payload.fileName}. Triggering download.`);
                 try {
@@ -698,6 +757,9 @@ class WorldDisplay {
         this.updateSelectedWorldUI(); // Update UI elements like function name, status
         if (needsUIRedraw) {
             this.requestRedraw(); // Request main canvas redraw
+        }
+        if (needsSidebarToggleUpdate && worldManager.selectedWorld === this) {
+            worldManager.populateStructureToggles(this);
         }
     }
 
@@ -870,6 +932,8 @@ const worldManager = {
     _lastClickTime: 0,
     _lastClickedWorldId: -1,
 
+    _structureOverlayTooltip: null, // Hover info
+
     init() {
         this.resizeMainCanvas(); // Initial size
         window.addEventListener('resize', () => {
@@ -885,6 +949,19 @@ const worldManager = {
         this.setupGlobalControls();
         this.updateSelectedWorldUI(); // Set initial state for UI elements
         this.requestRedraw(); // Initial empty draw
+
+        // For structure hover
+        this._structureOverlayTooltip = document.createElement('div');
+        this._structureOverlayTooltip.className = 'structure-tooltip';
+        this._structureOverlayTooltip.style.position = 'fixed'; // Fixed to viewport
+        this._structureOverlayTooltip.style.display = 'none';
+        this._structureOverlayTooltip.style.background = 'rgba(0,0,0,0.8)';
+        this._structureOverlayTooltip.style.color = 'white';
+        this._structureOverlayTooltip.style.padding = '5px 8px';
+        this._structureOverlayTooltip.style.borderRadius = '3px';
+        this._structureOverlayTooltip.style.pointerEvents = 'none'; // Important
+        this._structureOverlayTooltip.style.zIndex = '100'; // Above canvas, maybe above sidebar toggle
+        document.body.appendChild(this._structureOverlayTooltip);
     
         sidebarToggle.addEventListener('click', () => {
             const isDesktop = window.innerWidth > 768;
@@ -1048,6 +1125,8 @@ const worldManager = {
                     spawnTileY: 0, hearts: 0
                 };
 
+                worldToRegen.clearStructures(); // Reset
+
                 // Add to front of queue for potentially faster processing
                 this.generationQueue.unshift(worldToRegen);
                 this.processQueue(); // Attempt to start it
@@ -1062,10 +1141,16 @@ const worldManager = {
 
         mainWorldCanvas.addEventListener('click', (e) => this.handleMainCanvasClick(e));
         mainWorldCanvas.addEventListener('mousedown', (e) => this.handleMainCanvasMouseDown(e));
-        mainWorldCanvas.addEventListener('mousemove', (e) => this.handleMainCanvasMouseMove(e));
+        mainWorldCanvas.addEventListener('mousemove', (e) => {
+            this.handleMainCanvasMouseMove(e);
+            this.handleStructureHover(e)
+        });
         mainWorldCanvas.addEventListener('mouseup', () => this.handleMainCanvasMouseUpLeave());
         mainWorldCanvas.addEventListener('mouseleave', () => this.handleMainCanvasMouseUpLeave());
         mainWorldCanvas.addEventListener('wheel', (e) => this.handleMainCanvasWheel(e), { passive: false });
+        mainWorldCanvas.addEventListener('mouseout', () => {
+            if (this._structureOverlayTooltip) this._structureOverlayTooltip.style.display = 'none';
+        });
 
         // Mobile
         mainWorldCanvas.addEventListener('touchstart', (e) => this.handleMainCanvasTouchStart(e), { passive: false });
@@ -1248,8 +1333,10 @@ const worldManager = {
     updateSelectedWorldUI() {
         if (this.selectedWorld) {
             this.selectedWorld.updateSelectedWorldUI();
+            this.populateStructureToggles(this.selectedWorld);
             selectedWorldControlsUI.style.display = 'block';
         } else {
+            document.getElementById('structureToggleContainer').innerHTML = '';
             selectedWorldIdDisplay.textContent = "N/A";
             currentFunctionDisplay.textContent = "Func: N/A";
             currentEventDisplay.textContent = "Status: N/A";
@@ -1260,31 +1347,6 @@ const worldManager = {
             simulateHardmodeButton.disabled = true;
             selectedWorldControlsUI.style.display = 'none'; // Hide panel if no world selected
         }
-    },
-
-    layoutWorlds() {
-        const numWorlds = this.worlds.size;
-        if (numWorlds === 0) {
-            this.requestRedraw(); // Clear canvas if no worlds
-            return;
-        }
-
-        const cols = Math.max(1, Math.ceil(Math.sqrt(numWorlds)));
-        const rows = Math.max(1, Math.ceil(numWorlds / cols));
-
-        const cellWidth = mainWorldCanvas.width / cols;
-        const cellHeight = mainWorldCanvas.height / rows;
-
-        let i = 0;
-        this.worlds.forEach(world => {
-            const r = Math.floor(i / cols);
-            const c = i % cols;
-            world.viewportRect.x = c * cellWidth;
-            world.viewportRect.y = r * cellHeight;
-            world.viewportRect.width = cellWidth;
-            world.viewportRect.height = cellHeight;
-            i++;
-        });
     },
 
     _redrawRequestId: null,
@@ -1349,6 +1411,105 @@ const worldManager = {
             mainCtx.font = `${Math.min(20, world.viewportRect.height / 5)}px var(--font-main)`;
             mainCtx.fillText('ERROR', world.viewportRect.x + world.viewportRect.width / 2, world.viewportRect.y + world.viewportRect.height / 2);
         }
+
+        if(world.spawnTileX != 0 && world.spawnTileY != 0){
+            const spawnMarkerTileWidth = 3;
+            const spawnMarkerTileHeight = 3;
+
+            const vpAspect = world.viewportRect.width / world.viewportRect.height;
+            const worldAspect = world.worldWidth / world.worldHeight;
+            
+            let drawW, drawH, originX, originY;
+    
+            if (vpAspect > worldAspect) {
+                drawH = world.viewportRect.height * world.currentZoom;
+                drawW = drawH * worldAspect;
+            } else {
+                drawW = world.viewportRect.width * world.currentZoom;
+                drawH = drawW / worldAspect;
+            }
+            originX = world.viewportRect.x + (world.viewportRect.width - drawW) / 2 + world.panX;
+            originY = world.viewportRect.y + (world.viewportRect.height - drawH) / 2 + world.panY;
+    
+
+            const scaleX = drawW / world.worldWidth;
+            const scaleY = drawH / world.worldHeight;
+
+            // Spawn coords are bottom center, calculate topLeft
+            const markerTopLeftTileX = world.genInfo.spawnTileX - (spawnMarkerTileWidth / 2);
+            const markerTopLeftTileY = world.genInfo.spawnTileY - spawnMarkerTileHeight;
+
+            const screenMarkerX = originX + markerTopLeftTileX * scaleX;
+            const screenMarkerY = originY + markerTopLeftTileY * scaleY;
+
+            const screenMarkerWidth = spawnMarkerTileWidth * scaleX;
+            const screenMarkerHeight = spawnMarkerTileHeight * scaleY;
+
+            if (screenMarkerX + screenMarkerWidth < 0 || screenMarkerX > mainWorldCanvas.width ||
+                screenMarkerY + screenMarkerHeight < 0 || screenMarkerY > mainWorldCanvas.height) {
+            } else {
+                mainCtx.strokeStyle = 'rgba(255, 0, 0, 0.9)';
+                mainCtx.lineWidth = Math.max(4, 8 / world.currentZoom);
+                mainCtx.strokeRect(screenMarkerX, screenMarkerY, screenMarkerWidth, screenMarkerHeight);
+
+                // Optional: Draw "Spawn" text
+                if (world.currentZoom > 0.3 && screenMarkerWidth > 15 && screenMarkerHeight > 8) {
+                    mainCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    mainCtx.font = `${Math.max(7, Math.min(12, 9 / world.currentZoom))}px Arial`;
+                    mainCtx.textAlign = 'center';
+                    mainCtx.textBaseline = 'middle';
+                    mainCtx.fillText("Spawn", screenMarkerX + screenMarkerWidth / 2, screenMarkerY + screenMarkerHeight / 2);
+                }
+            }
+
+        }
+
+        if (world.structures.length > 0) {
+            const vpAspectStruct = world.viewportRect.width / world.viewportRect.height;
+            const worldAspectStruct = world.worldWidth / world.worldHeight;
+            let drawWStruct, drawHStruct, originXStruct, originYStruct;
+    
+            if (vpAspectStruct > worldAspectStruct) {
+                drawHStruct = world.viewportRect.height * world.currentZoom;
+                drawWStruct = drawHStruct * worldAspectStruct;
+            } else {
+                drawWStruct = world.viewportRect.width * world.currentZoom;
+                drawHStruct = drawWStruct / worldAspectStruct;
+            }
+            originXStruct = world.viewportRect.x + (world.viewportRect.width - drawWStruct) / 2 + world.panX;
+            originYStruct = world.viewportRect.y + (world.viewportRect.height - drawHStruct) / 2 + world.panY;
+    
+            const scaleXStruct = drawWStruct / world.worldWidth;
+            const scaleYStruct = drawHStruct / world.worldHeight;
+    
+            world.structures.forEach(s => {
+                if (world.structureTypeVisibility[s.type] === false) return;
+    
+                const screenX = originXStruct + s.x * scaleXStruct;
+                const screenY = originYStruct + s.y * scaleYStruct;
+                const screenWidth = s.width * scaleXStruct;
+                const screenHeight = s.height * scaleYStruct;
+    
+                // Cull
+                if (screenX + screenWidth < 0 || screenX > mainWorldCanvas.width ||
+                    screenY + screenHeight < 0 || screenY > mainWorldCanvas.height) {
+                    return;
+                }
+    
+                mainCtx.strokeStyle = s.isProtected ? 'rgba(255, 0, 255, 0.9)' : 'rgba(0, 255, 255, 0.7)';
+                mainCtx.lineWidth = Math.max(1, 1.5 / world.currentZoom);
+                mainCtx.strokeRect(screenX, screenY, screenWidth, screenHeight);
+    
+                if (world.currentZoom > 0.5 && screenWidth > 20 && screenHeight > 10) { // Only draw text if structure is reasonably sized on screen
+                   mainCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                   mainCtx.font = `${Math.max(6, Math.min(10, 8 / world.currentZoom))}px Arial`; // Smaller font for structure names
+                   mainCtx.textAlign = 'center';
+                   mainCtx.textBaseline = 'middle';
+                   mainCtx.fillText(getEStructureName(s.type), screenX + screenWidth / 2, screenY + screenHeight / 2);
+                }
+            });
+        }
+
         mainCtx.restore();
 
         const isDesktop = window.innerWidth > 768;
@@ -1389,6 +1550,108 @@ const worldManager = {
              mainCtx.fillText(`Seed: ${world.seed}`, mainWorldCanvas.width - 10, mainWorldCanvas.height - 10);
         }
     },
+
+    handleStructureHover(e) {
+        if (!this.selectedWorld || !this.selectedWorld.structures.length || !this._structureOverlayTooltip) return;
+
+        const world = this.selectedWorld;
+        const rect = mainWorldCanvas.getBoundingClientRect();
+        const mouseCanvasX = e.clientX - rect.left;
+        const mouseCanvasY = e.clientY - rect.top;
+
+        // Inverse transform mouse canvas coordinates to world tile coordinates
+        const viewportAspect = world.viewportRect.width / world.viewportRect.height;
+        const imageAspect = world.worldWidth / world.worldHeight;
+        let drawWidth, drawHeight, drawnImageOriginX, drawnImageOriginY;
+        if (viewportAspect > imageAspect) {
+            drawHeight = world.viewportRect.height * world.currentZoom;
+            drawWidth = drawHeight * imageAspect;
+        } else {
+            drawWidth = world.viewportRect.width * world.currentZoom;
+            drawHeight = drawWidth / imageAspect;
+        }
+        drawnImageOriginX = world.viewportRect.x + (world.viewportRect.width - drawWidth) / 2 + world.panX;
+        drawnImageOriginY = world.viewportRect.y + (world.viewportRect.height - drawHeight) / 2 + world.panY;
+
+        const mouseWorldX = ((mouseCanvasX - drawnImageOriginX) / drawWidth) * world.worldWidth;
+        const mouseWorldY = ((mouseCanvasY - drawnImageOriginY) / drawHeight) * world.worldHeight;
+
+        let foundStructure = null;
+        // Iterate in reverse to find topmost structure if they overlap
+        for (let i = world.structures.length - 1; i >= 0; i--) {
+            const s = world.structures[i];
+            if (world.structureTypeVisibility[s.type] === false) continue;
+
+            const sRect = { x: s.x, y: s.y, right: s.x + s.width, bottom: s.y + s.height };
+            if (mouseWorldX >= sRect.x && mouseWorldX < sRect.right &&
+                mouseWorldY >= sRect.y && mouseWorldY < sRect.bottom) {
+                foundStructure = s;
+                break;
+            }
+        }
+
+        if (foundStructure) {
+            this._structureOverlayTooltip.style.display = 'block';
+            this._structureOverlayTooltip.style.left = `${e.clientX + 15}px`;
+            this._structureOverlayTooltip.style.top = `${e.clientY + 10}px`;
+            this._structureOverlayTooltip.innerHTML = `
+                Type: ${getEStructureName(foundStructure.type)}<br>
+                Area: (${foundStructure.x}, ${foundStructure.y}) ${foundStructure.width}x${foundStructure.height}<br>
+                ${foundStructure.isProtected ? 'Protected' : 'Standard'}
+            `;
+        } else {
+            this._structureOverlayTooltip.style.display = 'none';
+        }
+    },
+
+    populateStructureToggles(world) {
+        if (!world) return;
+        const container = document.getElementById('structureToggleContainer');
+        if (!container) return;
+
+        // Get all unique structure types present in the world
+        const presentTypes = new Set(world.structures.map(s => s.type));
+
+        // Create a map of existing checkboxes for quick lookup
+        const existingCheckboxes = {};
+        container.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+            existingCheckboxes[parseInt(chk.dataset.structureType)] = chk.parentElement; // Store the label
+        });
+
+        // Add/Update checkboxes
+        Object.keys(EStructure).forEach(typeName => {
+            const typeId = EStructure[typeName];
+            if (typeId === EStructure.None) return; // Skip 'None'
+
+            if (!presentTypes.has(typeId) && !existingCheckboxes[typeId]) return; // Don't show toggle if type not present unless already there
+
+            let label = existingCheckboxes[typeId];
+            let checkbox;
+
+            if (!label) { // Create new if not exists
+                label = document.createElement('label');
+                checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.dataset.structureType = typeId;
+                const text = document.createTextNode(` ${typeName.replace(/([A-Z])/g, ' $1').trim()}`); // Add spaces
+                
+                label.appendChild(checkbox);
+                label.appendChild(text);
+                container.appendChild(label);
+
+                checkbox.addEventListener('change', (e) => {
+                    world.toggleStructureTypeVisibility(typeId);
+                });
+            } else {
+                checkbox = label.querySelector('input');
+            }
+            // Ensure checkbox reflects current visibility state
+            checkbox.checked = world.structureTypeVisibility[typeId] === undefined ? true : world.structureTypeVisibility[typeId];
+        });
+
+        // Optional: Remove checkboxes for types no longer present (if structureMapReset clears ALL)
+        // For now, they just stay but won't draw anything if no structures of that type
+    },
     
     _panningWorld: null,
     _lastPanPosition: {x:0, y:0},
@@ -1398,7 +1661,19 @@ const worldManager = {
         const canvasClickX = e.clientX - rect.left;
         const canvasClickY = e.clientY - rect.top;
 
-        for (const world of this.worlds.values()) {
+        const worldsToSearch = [];
+        if (isSingleWorldView && focusedWorldId !== null && this.worlds.has(focusedWorldId)) {
+            // In single view, ONLY the focused world is relevant.
+            const focused = this.worlds.get(focusedWorldId);
+            worldsToSearch.push(focused);
+        } else if (!isSingleWorldView) {
+            // In grid view, add all worlds to check against their grid cell viewports
+            this.worlds.forEach(world => worldsToSearch.push(world));
+        } else {
+            return null;
+        }
+
+        for (const world of worldsToSearch) {
             if (canvasClickX >= world.viewportRect.x && canvasClickX < world.viewportRect.x + world.viewportRect.width &&
                 canvasClickY >= world.viewportRect.y && canvasClickY < world.viewportRect.y + world.viewportRect.height) {
                 
@@ -1752,7 +2027,7 @@ const worldManager = {
         if (e.deltaY < 0) targetWorld.currentZoom *= zoomFactor; // Zoom in
         else targetWorld.currentZoom /= zoomFactor; // Zoom out
         
-        targetWorld.currentZoom = Math.max(0.05, Math.min(128, targetWorld.currentZoom)); // Clamp zoom
+        targetWorld.currentZoom = Math.max(1.0, Math.min(128, targetWorld.currentZoom)); // Reasonable zoom limit
         
         const k = targetWorld.currentZoom / oldZoom;
 

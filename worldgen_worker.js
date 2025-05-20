@@ -512,6 +512,28 @@ const visualizerAppWorkerHandlers = {
             _updateWorkerCompactTile(x, y, tileType, wallType, flags , liquidAmount);
         }
     },
+    handleBatchStructuresAdded: (structArr) => {
+        const structures = [];
+        const bytesPerStructure = 18;
+
+        const dataView = new DataView(structArr.buffer, structArr.byteOffset, structArr.byteLength);
+        for (let i = 0; i < dataView.byteLength; i += bytesPerStructure) {
+            // Check if there are enough bytes remaining for a full structure
+            if (i + bytesPerStructure > dataView.byteLength) {
+                console.warn("Worker: Incomplete structure data at end of batch.");
+                break;
+            }
+
+            const s_x = dataView.getInt32(i + 0, true);
+            const s_y = dataView.getInt32(i + 4, true);
+            const s_w = dataView.getInt32(i + 8, true);
+            const s_h = dataView.getInt32(i + 12, true);
+            const s_type = dataView.getUint8(i + 16);
+            const s_isProtected = dataView.getUint8(i + 17) === 1;
+            structures.push({ x: s_x, y: s_y, width: s_w, height: s_h, type: s_type, isProtected: s_isProtected });
+        }
+        self.postMessage({ worldId: currentWorldId, type: 'batch_structures_added', payload: structures });
+    },
     handleChestModified: (x, y, itemCount) => {
         self.postMessage({
             worldId: currentWorldId,
