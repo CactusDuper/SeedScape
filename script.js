@@ -15,6 +15,7 @@ const numWorldsInput = document.getElementById('numWorldsInput');
 const baseSeedInput = document.getElementById('baseSeedInput');
 const randomBaseSeedButton = document.getElementById('randomBaseSeedButton');
 const worldSizeSelect = document.getElementById('worldSizeSelect');
+const evilTypeSelect = document.getElementById('evilTypeSelect');
 const stepDelayInput = document.getElementById('stepDelayInput');
 const generateWorldsButton = document.getElementById('generateWorldsButton');
 const regenerateSelectedButton = document.getElementById('regenerateSelectedButton');
@@ -39,10 +40,14 @@ const TILE_OFFSET_LIQUID = 4;  // uint8  (Liquid Amount)
 
 // Flags within the 16-bit TILE_OFFSET_FLAGS field
 const TILE_FLAG_ACTIVE = 0x0001;    // Is the tile an active block?
+const TILE_FLAG_WIRE_RED    = 0x0020; // Bit 6
+const TILE_FLAG_WIRE_GREEN  = 0x0040; // Bit 7
+const TILE_FLAG_WIRE_BLUE   = 0x0080; // Bit 8
 const TILE_FLAG_LIQ_TYPE = 0x0600;  // Mask for liquid type (bits 9 and 10)
 const LIQUID_TYPE_SHIFT = 9;       // Shift to get liquid type to 0-3 range
 const MAX_SEED_VALUE = 2147483647; // 2^31 - 1
 
+const CATBAST_TILE_ID = 194;
 
 const EStructure = {
     None: 0, Chambers: 1, Anthill: 2, LarvaHole: 3, Pit: 4, DuneHill: 5,
@@ -419,6 +424,12 @@ const walls = [
     { name: "HallowUnsafe4", color: "#714096" },
 ];
 
+const WIRE_TYPES = {
+    RED:    { id: 'RED',    flag: TILE_FLAG_WIRE_RED,    color: 'rgba(255, 0, 0, 0.8)', name: 'Red Wire' },
+    GREEN:  { id: 'GREEN',  flag: TILE_FLAG_WIRE_GREEN,  color: 'rgba(0, 255, 0, 0.8)', name: 'Green Wire' },
+    BLUE:   { id: 'BLUE',   flag: TILE_FLAG_WIRE_BLUE,   color: 'rgba(0, 0, 255, 0.8)', name: 'Blue Wire' }
+};
+
 const FALLBACK_TILE_COLOR = '#FF00FF'; // Magenta for unknown tiles/walls
 
 // Main thread's Emscripten Module object (dont remember if this is needed globally as workers load their own)
@@ -463,9 +474,10 @@ function addLog(message, type = 'info') {
 
 
 class WorldDisplay {
-    constructor(id, initialSeed, worldSizeOption, cppStepDelay) {
+    constructor(id, initialSeed, worldSizeOption, evilTypeOption, cppStepDelay) {
         this.id = id;
         this.seed = parseInt(initialSeed, 10); // Ensure seed is a number. Text seeds are positive crc32 values (int_min -> int_max, otherwise use abs)
+        this.evilTypeOption = evilTypeOption;
         this.worldSizeOption = worldSizeOption;
         this.worldWidth = parseInt(worldSizeOption.dataset.width);
         this.worldHeight = parseInt(worldSizeOption.dataset.height);
@@ -476,6 +488,18 @@ class WorldDisplay {
         this.currentFunctionName = "N/A";
 
         this.renderedWorldBitmap = null; 
+
+        this.wireOverlayBitmaps = {
+            //RED: null, GREEN: null, BLUE: null
+        };
+
+        for (const key in WIRE_TYPES) {
+            this.wireOverlayBitmaps[WIRE_TYPES[key].id] = null;
+        }
+        this.wireVisibility = {};
+        for (const key in WIRE_TYPES) {
+            this.wireVisibility[WIRE_TYPES[key].id] = true;
+        }
 
         this.compactTileBuffer = null;
         this.tileDataView = null;
@@ -520,6 +544,15 @@ class WorldDisplay {
 
     }
 
+    toggleWireVisibility(wireTypeId) {
+        if (this.wireVisibility[wireTypeId] === undefined) {
+            this.wireVisibility[wireTypeId] = false; // Default if somehow not initialized
+        } else {
+            this.wireVisibility[wireTypeId] = !this.wireVisibility[wireTypeId];
+        }
+        worldManager.requestRedraw(); // Request redraw as overlay visibility changes
+    }
+
     addStructure(data) {
         this.structures.push({ ...data, id: this.nextStructureId++ });
         // By default, make new structure types visible
@@ -534,6 +567,73 @@ class WorldDisplay {
         // this.structureTypeVisibility = {};
     }
 
+    // TODO: CatBast testing
+    scanAndAddVirtualStructures() {
+        if (!this.tileDataView || CATBAST_TILE_ID === -1) {
+            console.log(`World ${this.id}: Tile data not ready or CatBast ID unknown for virtual scan.`);
+            return false; // Indicate no scan happened or nothing found
+        }
+        console.log("Scanning for cat");
+
+        let virtualStructuresAdded = false;
+        const VIRTUAL_CATBAST_WIDTH = 2; // Likely better to increase
+        const VIRTUAL_CATBAST_HEIGHT = 2;
+
+        // Helper to get tile type at (x,y) from compactTileBuffer since I need to refactor getTileInfo...
+        const getTileType = (x, y) => {
+            if (x < 0 || x >= this.worldWidth || y < 0 || y >= this.worldHeight) return -1; // OOB
+            const offset = (y * this.worldWidth + x) * TILE_DATA_STRIDE;
+            const flagsLowByte = this.tileDataView[offset + TILE_OFFSET_FLAGS];
+            const flagsHighByte = this.tileDataView[offset + TILE_OFFSET_FLAGS + 1];
+            const packedFlags = (flagsHighByte << 8) | flagsLowByte;
+            const isActive = (packedFlags & TILE_FLAG_ACTIVE) !== 0;
+
+            if (isActive) {
+                return this.tileDataView[offset + TILE_OFFSET_TYPE];
+            }
+            return -1; // Not an active tile
+        };
+
+        // Grid
+        const visitedCatBast = new Array(this.worldWidth * this.worldHeight).fill(false);
+        const getVisitedIndex = (x,y) => y * this.worldWidth + x;
+
+
+        for (let y = 0; y < this.worldHeight; y++) {
+            for (let x = 0; x < this.worldWidth; x++) {
+                if (visitedCatBast[getVisitedIndex(x,y)]) continue; // Already processed this area
+
+                const tileType = getTileType(x, y);
+                if (tileType === CATBAST_TILE_ID) {
+                    console.log("Found cat: " + x + ", " + y);
+                    // Found a CatBast tile. This is likely the top-left or origin (don't remember, was late when I made this).
+                    // const structureData = {
+                    //     x: x,
+                    //     y: y,
+                    //     width: VIRTUAL_CATBAST_WIDTH,
+                    //     height: VIRTUAL_CATBAST_HEIGHT,
+                    //     type: EStructure.DesertHive, // Make catBast one
+                    //     isProtected: false,
+                    //     isVirtual: true // Flag to distinguish
+                    // };
+                    // this.addStructure(structureData);
+                    // virtualStructuresAdded = true;
+
+                    // Mark the area covered by this virtual structure as visited
+                    // to prevent redundant virtual structures from nearby CatBast tiles (as it's 2x2)
+                    // for (let vy = y; vy < y + VIRTUAL_CATBAST_HEIGHT && vy < this.worldHeight; vy++) {
+                    //     for (let vx = x; vx < x + VIRTUAL_CATBAST_WIDTH && vx < this.worldWidth; vx++) {
+                    //         if(getTileType(vx,vy) === CATBAST_TILE_ID) { // Only mark actual CatBast tiles as processed by this found one
+                    //             visitedCatBast[getVisitedIndex(vx,vy)] = true;
+                    //         }
+                    //     }
+                    // }
+                }
+            }
+        }
+        return virtualStructuresAdded;
+    }
+
     toggleStructureTypeVisibility(structureType) {
         if (this.structureTypeVisibility[structureType] === undefined) {
             this.structureTypeVisibility[structureType] = false; // Default to false if toggling an unknown one first
@@ -543,12 +643,20 @@ class WorldDisplay {
         worldManager.requestRedraw(); // Request redraw as overlay will change
     }
 
-    startGeneration() {
+    startGeneration(renderSettings, bitmap, transferList) {
         this.destroyWorker(); // Ensure no old worker
         if (this.renderedWorldBitmap) { // Clear previous render if regenerating
             this.renderedWorldBitmap.close(); // Release bitmap resources
             this.renderedWorldBitmap = null;
         }
+        // Clear old wire overlays
+        for (const typeId in this.wireOverlayBitmaps) {
+            if (this.wireOverlayBitmaps[typeId]) {
+                this.wireOverlayBitmaps[typeId].close();
+                this.wireOverlayBitmaps[typeId] = null;
+            }
+        }
+
         this.status = 'initializing';
         this.currentFunctionName = "N/A";
         this.updateSelectedWorldUI(); // Reflect initializing state
@@ -563,17 +671,20 @@ class WorldDisplay {
             this.requestRedraw();
         };
 
-        this.worker.postMessage({
+        const messagePayload = {
             command: 'initAndStart',
             worldId: this.id,
             seed: this.seed,
             worldSize: this.worldSizeOption.value,
+            evilType: this.evilTypeOption.value,
             stepDelay: this.cppStepDelay,
             wasmPath: 'worldgen_visualizer.js', // glue code
-            canvasWidth: this.worldWidth,   // These are tile dimensions
-            canvasHeight: this.worldHeight
-        });
-        addLog(`World ${this.id}: Generation started with seed ${this.seed}.`);
+            canvasWidth: this.worldWidth, // These are tile dimensions
+            canvasHeight: this.worldHeight,
+        };
+
+        this.worker.postMessage(messagePayload, transferList || []);
+        addLog(`World ${this.id}: Generation started (Seed: ${this.seed}.`);
         this.requestRedraw();
     }
 
@@ -591,7 +702,8 @@ class WorldDisplay {
             command: 'saveWorldFile',
             worldId: this.id,
             seed: this.seed,
-            worldSize: this.worldSizeOption.value
+            worldSize: this.worldSizeOption.value,
+            evilType: this.evilTypeOption.value
         });
     }
 
@@ -612,7 +724,7 @@ class WorldDisplay {
         }
         
         addLog(`World ${this.id}: Requesting worker to simulate Hardmode.`);
-        this.status = 'simulating_hardmode'; // New status
+        this.status = 'simulating_hardmode';
         this.updateSelectedWorldUI();       // Update progress bar, button states, etc.
     
         // We need to send canvasWidth and canvasHeight because the worker
@@ -664,18 +776,39 @@ class WorldDisplay {
                 const previousStatus = this.status; // 'generating' or 'simulating_hardmode'
                 if (payload) {
 
-                    if (payload.bitmap) {
+                    if (payload.baseBitmap) {
                         if (this.renderedWorldBitmap) this.renderedWorldBitmap.close();
-                        this.renderedWorldBitmap = payload.bitmap;
-                        addLog(`World ${this.id}: Render bitmap received.`);
+                        this.renderedWorldBitmap = payload.baseBitmap;
+                        addLog(`World ${this.id}: Base render bitmap received.`);
                     } else {
-                        addLog(`World ${this.id}: Render complete message, but no bitmap in payload.`, 'warn');
+                        addLog(`World ${this.id}: Render complete, but no base bitmap.`, 'warn');
                     }
+
+                    if (payload.wireOverlays) {
+                        for (const wireTypeId in payload.wireOverlays) {
+                            if (this.wireOverlayBitmaps.hasOwnProperty(wireTypeId)) {
+                                if (this.wireOverlayBitmaps[wireTypeId]) {
+                                    this.wireOverlayBitmaps[wireTypeId].close();
+                                }
+                                this.wireOverlayBitmaps[wireTypeId] = payload.wireOverlays[wireTypeId];
+                                addLog(`World ${this.id}: Received ${wireTypeId} wire overlay.`);
+                            }
+                        }
+                    }
+
+                    // TODO: payload.structureOverlay, should I render on worker and send to main?
 
                     if (payload.tileBuffer && payload.tileBuffer instanceof ArrayBuffer) {
                         this.compactTileBuffer = payload.tileBuffer;
                         this.tileDataView = new Uint8Array(this.compactTileBuffer);
                         addLog(`World ${this.id}: Tile data buffer received (${(this.compactTileBuffer.byteLength / (1024*1024)).toFixed(2)} MB).`);
+
+                        // TODO: This was for catBast testing
+                        // const virtualAdded = this.scanAndAddVirtualStructures();
+                        // if (virtualAdded && worldManager.selectedWorld === this) {
+                        //     needsSidebarToggleUpdate = true; // To update structure toggles
+                        // }
+
                     } else {
                         addLog(`World ${this.id}: Render complete message, but no valid tileBuffer in payload. Tile info will be unavailable.`, 'warn');
                         this.compactTileBuffer = null; // Ensure it's cleared if bad data comes
@@ -752,6 +885,30 @@ class WorldDisplay {
                 }
                 break;
             }
+            case 'apply_render_settings_complete':
+                addLog(`World ${this.id}: Render settings applied.`);
+                if (payload) {
+                    if (payload.baseBitmap) {
+                         if (this.renderedWorldBitmap) this.renderedWorldBitmap.close();
+                         this.renderedWorldBitmap = payload.baseBitmap;
+                         addLog(`World ${this.id}: Updated base bitmap.`);
+                    }
+                    if (payload.wireOverlays) {
+                        for (const wireTypeId in payload.wireOverlays) {
+                            if (this.wireOverlayBitmaps.hasOwnProperty(wireTypeId)) {
+                                if (this.wireOverlayBitmaps[wireTypeId]) {
+                                    this.wireOverlayBitmaps[wireTypeId].close();
+                                }
+                                this.wireOverlayBitmaps[wireTypeId] = payload.wireOverlays[wireTypeId];
+                                addLog(`World ${this.id}: Updated ${wireTypeId} wire overlay.`);
+                            }
+                        }
+                    }
+                } else {
+                     addLog(`World ${this.id}: Apply render settings complete, but no new bitmaps.`, 'warn');
+                }
+                needsUIRedraw = true;
+                break;
         }
 
         this.updateSelectedWorldUI(); // Update UI elements like function name, status
@@ -905,6 +1062,14 @@ class WorldDisplay {
 
     destroy() {
         this.destroyWorker();
+        if (this.renderedWorldBitmap) this.renderedWorldBitmap.close();
+        this.renderedWorldBitmap = null;
+        for (const typeId in this.wireOverlayBitmaps) {
+            if (this.wireOverlayBitmaps[typeId]) {
+                this.wireOverlayBitmaps[typeId].close();
+                this.wireOverlayBitmaps[typeId] = null;
+            }
+        }
         if (this.offscreenCanvas) {
             this.offscreenCanvas.width = 0;
             this.offscreenCanvas.height = 0;
@@ -949,6 +1114,9 @@ const worldManager = {
         this.setupGlobalControls();
         this.updateSelectedWorldUI(); // Set initial state for UI elements
         this.requestRedraw(); // Initial empty draw
+
+        // Wires
+        this.populateWireToggles(this.selectedWorld);
 
         // For structure hover
         this._structureOverlayTooltip = document.createElement('div');
@@ -1046,12 +1214,13 @@ const worldManager = {
             const baseSeedValue = clampedBaseSeed; // Use the valid, clamped seed
 
             const sizeOpt = worldSizeSelect.options[worldSizeSelect.selectedIndex]; // TODO: Custom sizes
+            const evilOpt = evilTypeSelect.options[evilTypeSelect.selectedIndex];
             const delay = parseInt(stepDelayInput.value); // Not used just yet
 
             let actualWorldsQueued = 0; // Keep track if we skip any
             for (let i = 0; i < numToGen; i++) {
                 const worldSeed = (baseSeedValue + i) % (MAX_SEED_VALUE + 1); // Make sure it wraps around
-                this.addWorldToQueue(worldSeed, sizeOpt, delay);
+                this.addWorldToQueue(worldSeed, sizeOpt, evilOpt, delay);
                 actualWorldsQueued++;
             }
 
@@ -1087,6 +1256,8 @@ const worldManager = {
                 const newWorldWidth = parseInt(newSizeOption.dataset.width);
                 const newWorldHeight = parseInt(newSizeOption.dataset.height);
 
+                const newEvilTypeOption = evilTypeSelect.options[evilTypeSelect.selectedIndex];
+
                 let seedFromInput = parseInt(baseSeedInput.value, 10);
                 if (isNaN(seedFromInput)) {
                     seedFromInput = 0; // Default if input is invalid
@@ -1116,6 +1287,8 @@ const worldManager = {
                 worldToRegen.worldSizeOption = newSizeOption;
                 worldToRegen.worldWidth = newWorldWidth;
                 worldToRegen.worldHeight = newWorldHeight;
+                
+                worldToRegen.evilTypeOption = newEvilTypeOption;
 
                 // Reset view
                 worldToRegen.panX = 0;
@@ -1209,9 +1382,9 @@ const worldManager = {
         });
     },
     
-    addWorldToQueue(seed, worldSizeOption, cppStepDelay) {
+    addWorldToQueue(seed, worldSizeOption, evilTypeOption, cppStepDelay) {
         const worldId = this.nextWorldId++;
-        const world = new WorldDisplay(worldId, seed, worldSizeOption, cppStepDelay);
+        const world = new WorldDisplay(worldId, seed, worldSizeOption, evilTypeOption, cppStepDelay);
         this.worlds.set(worldId, world);
         this.generationQueue.push(world);
 
@@ -1341,9 +1514,11 @@ const worldManager = {
         if (this.selectedWorld) {
             this.selectedWorld.updateSelectedWorldUI();
             this.populateStructureToggles(this.selectedWorld);
+            this.populateWireToggles(this.selectedWorld);
             selectedWorldControlsUI.style.display = 'block';
         } else {
             document.getElementById('structureToggleContainer').innerHTML = '';
+            document.getElementById('wireToggleContainer').innerHTML = '';
             selectedWorldIdDisplay.textContent = "N/A";
             currentFunctionDisplay.textContent = "Func: N/A";
             currentEventDisplay.textContent = "Status: N/A";
@@ -1353,6 +1528,31 @@ const worldManager = {
             regenerateSelectedButton.disabled = true;
             simulateHardmodeButton.disabled = true;
             selectedWorldControlsUI.style.display = 'none'; // Hide panel if no world selected
+        }
+    },
+
+    populateWireToggles(world) {
+        if (!world) return;
+        const container = document.getElementById('wireToggleContainer');
+        if (!container) return;
+        container.innerHTML = ''; // Clear existing
+
+        for (const typeKey in WIRE_TYPES) {
+            const wireInfo = WIRE_TYPES[typeKey];
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.dataset.wireType = wireInfo.id;
+            checkbox.checked = world.wireVisibility[wireInfo.id] === true;
+
+            const text = document.createTextNode(` ${wireInfo.name}`);
+            label.appendChild(checkbox);
+            label.appendChild(text);
+            container.appendChild(label);
+
+            checkbox.addEventListener('change', () => {
+                world.toggleWireVisibility(wireInfo.id);
+            });
         }
     },
 
@@ -1384,21 +1584,23 @@ const worldManager = {
         mainCtx.rect(world.viewportRect.x, world.viewportRect.y, world.viewportRect.width, world.viewportRect.height);
         mainCtx.clip();
 
+        const viewportAspect = world.viewportRect.width / world.viewportRect.height;
+        const bitmapBaseWidth = world.worldWidth; // Expected base bitmap width
+        const bitmapBaseHeight = world.worldHeight;
+        const bitmapAspect = bitmapBaseWidth / bitmapBaseHeight;
+
+        let drawWidth, drawHeight;
+        if (viewportAspect > bitmapAspect) {
+            drawHeight = world.viewportRect.height * world.currentZoom;
+            drawWidth = drawHeight * bitmapAspect;
+        } else {
+            drawWidth = world.viewportRect.width * world.currentZoom;
+            drawHeight = drawWidth / bitmapAspect;
+        }
+        const drawX = world.viewportRect.x + (world.viewportRect.width - drawWidth) / 2 + world.panX;
+        const drawY = world.viewportRect.y + (world.viewportRect.height - drawHeight) / 2 + world.panY;
+
         if (world.renderedWorldBitmap) {
-            const viewportAspect = world.viewportRect.width / world.viewportRect.height;
-            const bitmapAspect = world.renderedWorldBitmap.width / world.renderedWorldBitmap.height;
-
-            let drawWidth, drawHeight;
-            if (viewportAspect > bitmapAspect) {
-                drawHeight = world.viewportRect.height * world.currentZoom;
-                drawWidth = drawHeight * bitmapAspect;
-            } else {
-                drawWidth = world.viewportRect.width * world.currentZoom;
-                drawHeight = drawWidth / bitmapAspect;
-            }
-            const drawX = world.viewportRect.x + (world.viewportRect.width - drawWidth) / 2 + world.panX;
-            const drawY = world.viewportRect.y + (world.viewportRect.height - drawHeight) / 2 + world.panY;
-
             mainCtx.drawImage(world.renderedWorldBitmap, drawX, drawY, drawWidth, drawHeight);
 
         } else if (world.status === 'generating' || world.status === 'initializing' || world.status === 'simulating_hardmode') {
@@ -1417,6 +1619,16 @@ const worldManager = {
             mainCtx.textBaseline = 'middle';
             mainCtx.font = `${Math.min(20, world.viewportRect.height / 5)}px var(--font-main)`;
             mainCtx.fillText('ERROR', world.viewportRect.x + world.viewportRect.width / 2, world.viewportRect.y + world.viewportRect.height / 2);
+        }
+
+
+
+        // Draw wire overlays
+        for (const typeId in WIRE_TYPES) {
+            const wireInfo = WIRE_TYPES[typeId];
+            if (world.wireVisibility[wireInfo.id] && world.wireOverlayBitmaps[wireInfo.id]) {
+                mainCtx.drawImage(world.wireOverlayBitmaps[wireInfo.id], drawX, drawY, drawWidth, drawHeight);
+            }
         }
 
         if(world.spawnTileX != 0 && world.spawnTileY != 0){

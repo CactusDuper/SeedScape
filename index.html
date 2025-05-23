@@ -10,23 +10,29 @@
 <body>
     <div class="app-container">
         <button id="sidebarToggle" class="sidebar-toggle-btn">
-            <i class="fas fa-bars"></i> <!-- Example Icon -->
+            <i class="fas fa-bars"></i> <!-- TODO: Add Icon -->
         </button>
         <div id="sidebar" class="sidebar">
             <div class="sidebar-content">
                 <!-- Global Controls -->
                 <div class="control-group">
-                    <h3>Global</h3>
+                    <h3>Global</h3> <!-- TODO: Better names for some of these are needed -->
                     <label for="numWorldsInput">Number of Worlds:</label>
                     <input type="number" id="numWorldsInput" value="1" min="1">
                     <label for="baseSeedInput">Base Seed (appended with world index or random):</label>
                     <input type="number" id="baseSeedInput" value="12345">
                     <button id="randomBaseSeedButton"><i class="fas fa-random"></i> Random Base</button>
-                    <label for="worldSizeSelect">World Size (for new worlds):</label>
+                    <label for="worldSizeSelect">World Size:</label>
                     <select id="worldSizeSelect">
                         <option value="0" data-width="4200" data-height="1200">Small (4200x1200)</option>
                         <option value="1" data-width="6400" data-height="1800" selected>Medium (6400x1800)</option>
                         <option value="2" data-width="8400" data-height="2400">Large (8400x2400)</option>
+                    </select>
+                    <label for="evilTypeSelect">Evil Type:</label>
+                    <select id="evilTypeSelect">
+                        <option value="0" selected>Random (default)</option>
+                        <option value="1">Corruption</option>
+                        <option value="2">Crimson</option>
                     </select>
                     <label for="stepDelayInput">C++ Step Delay (ms):</label>
                     <input type="number" id="stepDelayInput" value="0" min="0" title="Delay inside C++ emscripten_sleep during recordStep. 0 means yield only.">
@@ -50,6 +56,12 @@
                     <div class="info-box structure-toggles">
                         <h4>Structure Overlays:</h4>
                         <div id="structureToggleContainer">
+                        </div>
+                    </div>
+
+                    <div class="info-box wire-toggles">
+                        <h4>Wire Overlays:</h4>
+                        <div id="wireToggleContainer">
                         </div>
                     </div>
 

@@ -117,13 +117,13 @@ body {
 }
 
 
-.structure-toggles { margin-top: 15px; }
-#structureToggleContainer label {
+.structure-toggles, .wire-toggles { margin-top: 15px; }
+#structureToggleContainer label, #wireToggleContainer label {
     display: block;
     margin-bottom: 5px;
     cursor: pointer;
 }
-#structureToggleContainer input[type="checkbox"] {
+#structureToggleContainer input[type="checkbox"], #wireToggleContainer input[type="checkbox"] {
     margin-right: 8px;
     width: auto;
 }

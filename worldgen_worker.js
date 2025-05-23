@@ -18,8 +18,17 @@ const TILE_OFFSET_LIQUID = 4;  // uint8  (Liquid Amount)
 
 // Flags within the 16-bit TILE_OFFSET_FLAGS field
 const TILE_FLAG_ACTIVE = 0x0001;    // Is the tile an active block?
+const TILE_FLAG_WIRE_RED    = 0x0020;
+const TILE_FLAG_WIRE_GREEN  = 0x0040;
+const TILE_FLAG_WIRE_BLUE   = 0x0080;
 const TILE_FLAG_LIQ_TYPE = 0x0600;  // Mask for liquid type (bits 9 and 10)
 const LIQUID_TYPE_SHIFT = 9;       // Shift to get liquid type to 0-3 range
+
+const WIRE_TYPES = {
+    RED:    { id: 'RED',    flag: TILE_FLAG_WIRE_RED,    color: 'rgba(255, 0, 0, 1)', name: 'Red Wire' },
+    GREEN:  { id: 'GREEN',  flag: TILE_FLAG_WIRE_GREEN,  color: 'rgba(0, 255, 0, 1)', name: 'Green Wire' },
+    BLUE:   { id: 'BLUE',   flag: TILE_FLAG_WIRE_BLUE,   color: 'rgba(0, 0, 255, 1)', name: 'Blue Wire' }
+};
 
 // TODO: Shared settings
 const tiles_worker = [
@@ -392,7 +401,101 @@ const FALLBACK_COLOR_WORKER = '#FF00FF';
 
 let surfaceLayerY_worker, rockLayerY_worker, hellLayerY_worker, worldHeight_worker, worldWidth_worker;
 
+function hasWire(tileX, tileY, wireFlag) {
+    if (!workerTileDataView || tileX < 0 || tileX >= worldWidth_worker || tileY < 0 || tileY >= worldHeight_worker) {
+        return false;
+    }
+    const offset = (tileY * worldWidth_worker + tileX) * TILE_DATA_STRIDE;
+    const flagsLowByte = workerTileDataView[offset + TILE_OFFSET_FLAGS];
+    const flagsHighByte = workerTileDataView[offset + TILE_OFFSET_FLAGS + 1];
+    const packedFlags = (flagsHighByte << 8) | flagsLowByte;
+    return (packedFlags & wireFlag) !== 0;
+}
 
+function drawWireOverlayForType(wireTypeInfo) {
+    if (!workerTileDataView || !worldWidth_worker || !worldHeight_worker) {
+        console.warn(`Worker: Cannot draw ${wireTypeInfo.name} overlay, data or dimensions missing.`);
+        return null;
+    }
+
+    // Create a new OffscreenCanvas for this wire type.
+    // Its dimensions are based on the world's tile dimensions multiplied by the workerRenderSize.
+    const wireCanvas = new OffscreenCanvas(worldWidth_worker, worldHeight_worker);
+    const wireCtx = wireCanvas.getContext('2d');
+
+    // For thin, crisp lines, imageSmoothingEnabled should generally be false on the overlay canvas.
+    // The main canvas can decide on smoothing when it scales this overlay.
+    wireCtx.imageSmoothingEnabled = false;
+
+    wireCtx.strokeStyle = wireTypeInfo.color; // Use the color defined for the wire type
+
+    wireCtx.lineWidth = 1; // Draw with 1 canvas pixel lines on this overlay.
+
+
+    const rs = 1; // Size of one world tile in canvas pixels on this overlay canvas
+
+    for (let y = 0; y < worldHeight_worker; y++) {
+        for (let x = 0; x < worldWidth_worker; x++) {
+            if (hasWire(x, y, wireTypeInfo.flag)) {
+                // Calculate center of the current "tile cell" on the overlay canvas
+                const cellCenterX = (x * rs) + (rs / 2);
+                const cellCenterY = (y * rs) + (rs / 2);
+
+                // Get connection states
+                const connectsUp = hasWire(x, y - 1, wireTypeInfo.flag);
+                const connectsDown = hasWire(x, y + 1, wireTypeInfo.flag);
+                const connectsLeft = hasWire(x - 1, y, wireTypeInfo.flag);
+                const connectsRight = hasWire(x + 1, y, wireTypeInfo.flag);
+
+                let connectionCount = 0;
+                if (connectsUp) connectionCount++;
+                if (connectsDown) connectionCount++;
+                if (connectsLeft) connectionCount++;
+                if (connectsRight) connectionCount++;
+
+                wireCtx.beginPath();
+
+                // If no connections, draw a small square (or a slightly larger dot if rs > 1)
+                if (connectionCount === 0) {
+                    const dotSize = 1; // 20% of the tile cell size, min 1
+                    wireCtx.fillStyle = wireTypeInfo.color; // Use fillStyle for the dot
+                    wireCtx.fillRect(
+                        cellCenterX - Math.floor(dotSize / 2),
+                        cellCenterY - Math.floor(dotSize / 2),
+                        dotSize,
+                        dotSize
+                    );
+                } else {
+                    // Draw lines for connections
+                    // Apply +lineOffset to screen coordinates for sharp 1px lines
+                    if (connectsUp) {
+                        wireCtx.moveTo(cellCenterX, cellCenterY);
+                        wireCtx.lineTo(cellCenterX, y); // To top edge of cell
+                    }
+                    if (connectsDown) {
+                        wireCtx.moveTo(cellCenterX, cellCenterY);
+                        wireCtx.lineTo(cellCenterX, y + 1); // To bottom edge of cell
+                    }
+                    if (connectsLeft) {
+                        wireCtx.moveTo(cellCenterX, cellCenterY);
+                        wireCtx.lineTo(x, cellCenterY); // To left edge of cell
+                    }
+                    if (connectsRight) {
+                        wireCtx.moveTo(cellCenterX, cellCenterY);
+                        wireCtx.lineTo(x + 1, cellCenterY); // To right edge of cell
+                    }
+                }
+                wireCtx.stroke(); // Stroke all path segments for this tile
+            }
+        }
+    }
+    try {
+        return wireCanvas.transferToImageBitmap();
+    } catch (e) {
+        console.error(`Worker: Error transferring ${wireTypeInfo.name} wire canvas to bitmap:`, e);
+        return null;
+    }
+}
 
 function _getWorkerTileOffset(x, y) {
     if (!worldWidth_worker || !worldHeight_worker || x < 0 || x >= worldWidth_worker || y < 0 || y >= worldHeight_worker) return -1;
@@ -553,32 +656,36 @@ const visualizerAppWorkerHandlers = {
     },
     handleGenerationComplete: () => {
         let bitmap = null;
+        const wireOverlayBitmapsToSend = {};
+        const transferList = [];
         if (workerOffscreenCanvas && workerCtx) {
             bitmap = workerOffscreenCanvas.transferToImageBitmap();
+            transferList.push(bitmap);
         }
 
-        // Ensure workerCompactTileBuffer is not null (it should have been populated)
-        if (!workerCompactTileBuffer) {
-            console.error(`Worker ${currentWorldId}: workerCompactTileBuffer is null at generation complete!`);
-            // Fallback: send only bitmap or error.
-            self.postMessage({
-                worldId: currentWorldId,
-                type: 'generation_render_complete', // Main thread will see null tileBuffer
-                payload: { bitmap: bitmap, tileBuffer: null }
-            }, bitmap ? [bitmap] : []);
-            self.postMessage({ worldId: currentWorldId, type: 'status', status: 'error', message: "Tile data buffer missing in worker." });
-            return;
+        for (const typeKey in WIRE_TYPES) {
+            const wireInfo = WIRE_TYPES[typeKey];
+            const wireBitmap = drawWireOverlayForType(wireInfo);
+            if (wireBitmap) {
+                wireOverlayBitmapsToSend[wireInfo.id] = wireBitmap;
+                transferList.push(wireBitmap);
+            }
         }
+
+        
+        const payload = {
+            baseBitmap: bitmap,
+            wireOverlays: wireOverlayBitmapsToSend,
+            // structureOverlayBitmap: structureBitmap,
+            tileBuffer: workerCompactTileBuffer, // Send only if it exists
+        };
 
         // Post both the bitmap and the worker's complete tile buffer
         self.postMessage({
             worldId: currentWorldId,
             type: 'generation_render_complete',
-            payload: {
-                bitmap: bitmap,
-                tileBuffer: workerCompactTileBuffer // Send the ArrayBuffer
-            }
-        }, bitmap ? [bitmap, workerCompactTileBuffer] : [workerCompactTileBuffer]); // Transfer both if bitmap exists
+            payload: payload
+        }, transferList.concat(workerCompactTileBuffer ? [workerCompactTileBuffer] : [])); // Transfer all bitmaps and tile buffer
 
         self.postMessage({ worldId: currentWorldId, type: 'status', status: 'complete' });
 
@@ -609,7 +716,7 @@ self.visualizerApp = visualizerAppWorkerHandlers;
 
 
 self.onmessage = async (e) => {
-    const { command, worldId, seed, worldSize, stepDelay, wasmPath, canvasWidth, canvasHeight, x, y } = e.data;
+    const { command, worldId, seed, worldSize, evilType, stepDelay, wasmPath, canvasWidth, canvasHeight, x, y } = e.data;
 
     currentWorldId = worldId;
 
@@ -678,7 +785,9 @@ self.onmessage = async (e) => {
             self.postMessage({ worldId: currentWorldId, type: 'status', status: 'starting_generation' });
             
             Module.ccall('init_visualizer_worldgen', null, ['number'], [currentStepDelay]);
-            Module.ccall('start_world_generation', null, ['number', 'number'], [seed, worldSize]);
+            Module.ccall('start_world_generation', null, ['number', 'number', 'number'], [seed, worldSize, evilType]);
+
+            console.log("Generating with evilType: " + evilType);
             // GenerationComplete message will be sent by handleGenerationComplete
             
         } catch (err) {
@@ -789,5 +898,39 @@ self.onmessage = async (e) => {
             }
             self.postMessage({ worldId: currentWorldId, type: 'error', message: errorMessage });
         }
+    }
+    else if (command === 'apply_render_settings') {
+        // if (payload.wireTypes) { // Update wire types if sent
+        //     workerWireTypes = payload.wireTypes;
+        // }
+
+        if (workerCtx && workerTileDataView) {
+            renderFullWorldToWorkerCanvas(); // Render base world
+            const wireOverlaysToSend = {};
+            const transferList = [];
+            try {
+                 const newBaseBitmap = workerOffscreenCanvas.transferToImageBitmap();
+                 transferList.push(newBaseBitmap);
+
+                for (const typeKey in WIRE_TYPES) {
+                    const wireInfo = WIRE_TYPES[typeKey];
+                    const wireBitmap = drawWireOverlayForType(wireInfo);
+                    if (wireBitmap) {
+                        wireOverlaysToSend[wireInfo.id] = wireBitmap;
+                        transferList.push(wireBitmap);
+                    }
+                }
+
+                 self.postMessage({
+                     worldId: currentWorldId,
+                     type: 'apply_render_settings_complete',
+                     payload: {
+                         baseBitmap: newBaseBitmap,
+                         wireOverlays: wireOverlaysToSend
+                     }
+                 }, transferList);
+                 addLog(`Worker ${currentWorldId}: Full re-render with new settings complete.`);
+            } catch (renderError) { /* ... */ }
+        } else { /* ... */ }
     }
 };
